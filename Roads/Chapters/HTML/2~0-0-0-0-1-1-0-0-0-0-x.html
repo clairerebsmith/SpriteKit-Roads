@@ -1,0 +1,32 @@
+<h1>Fixing the bugs</h1>
+<p>The first bug in this game is one you’ll find if you’re good: in <code class="language-swift">createLevel()</code> the game will crash if the player gets to a high enough level. This is caused by our <code class="language-swift">itemsToShow</code> calculation: we keep adding more animals every time the player levels up, and eventually we’re out of space on the grid. </p>
+<p>Many moons ago we created <code class="language-swift">itemsToShow</code> as a variable rather than a constant inside <code class="language-swift">createLevel()</code>, and I said you should ignore Xcode’s warning. Well, now you’ll see why: we’re going to add a line of code there that puts a cap on its highest value.</p>
+<p>Add this to <code class="language-swift">createLevel()</code>, directly after <code class="language-swift">var itemsToShow</code>:</p>
+<pre><code class="language-swift">itemsToShow = min(itemsToShow, 96)</code></pre>
+<p>That  will ensure <code class="language-swift">itemsToShow</code> never goes above 96, which is as many animals our grid can handle.</p>
+<p>The second problem is that the player has no way of starting a new game after they lose. To fix this we’re going to use GCD to create a new instance of our <code class="language-swift">GameScene</code> class and present it two seconds after the player loses the game.</p>
+<p>This involves four things:</p>
+<ol>
+<li>Making a new game scene out of the file GameScene.sks. This is a simple configuration file that describes an iPad-sized game scene.</li>
+<li>Creating scenes from a file will fail if you type the filename wrongly, so this returns an optional – we need to use <code class="language-swift">if let</code> to unwrap it safely.</li>
+<li>Once we have a game scene we need to tell it to use the <code class="language-swift">.aspectFill</code> scale mode so that it scales up to fill iPads of different sizes. This guarantees us a 1024x768 drawing space for our scene.</li>
+<li>Finally, we need to call <code class="language-swift">presentScene()</code> on our scene’s <code class="language-swift">view</code> property to make the new scene display.</li>
+</ol>
+<p>Please add this to the <code class="language-swift">update()</code> method, just after the <code class="language-swift">addChild(gameOver)</code> line:</p>
+<pre><code class="language-swift">DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+    // create a new scene from GameScene.sks
+    if let scene = GameScene(fileNamed: "GameScene") {
+        // make it stretch to fill all available space
+        scene.scaleMode = .aspectFill
+
+        // present it immediately
+        self.view?.presentScene(scene)
+    }
+}</code></pre>
+<p>Finally, there’s a glitch that can happen if the user taps the screen quickly – it’s possible for them to select the correct answer, then select wrong answers directly after.</p>
+<p>To fix this, the easiest thing to do is disable user interaction when the correct item is tapped, then re-enable it during <code class="language-swift">createLevel()</code>. When user interaction is disabled SpriteKit will ignore all touches, so it’s perfect here.</p>
+<p>Add this line of code somewhere inside <code class="language-swift">correctAnswer()</code>:</p>
+<pre><code class="language-swift">isUserInteractionEnabled = false</code></pre>
+<p>Now add this somewhere inside <code class="language-swift">createLevel()</code>:</p>
+<pre><code class="language-swift">isUserInteractionEnabled = true</code></pre>
+<p>Go ahead and try your game one last time, because it’s finished!</p><ul><li><a href="2~0-0-0-0-1-1-0-0-0-0-0.html">Go to next chapter</a></li></ul>

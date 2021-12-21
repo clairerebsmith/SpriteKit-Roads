@@ -1,0 +1,64 @@
+<h1>Drawing a parallax background</h1>
+<p>In this game the player’s balloon will always stay at its initial X position, while fluctuating up and down as the player taps the screen. However, we want to make it look like they are moving through the air, so we’re going to make the <em>background</em> move instead.</p>
+<p>We’ll add two speeds of movement: there will be sky moving slowly in the background, and ground moving faster at the bottom of the screen. This combination creates what’s known as <em>parallax scrolling</em>, which is a simple way to simulate depth in a 2D game like ours.</p>
+<p>I’ve provided two graphics for you that are 2048 pixels wide – exactly the width of our play area in pixels. To make them scroll endlessly we’ll place two of each of them side by side, and make them move to the left by the size of our screen. Once they are offscreen, we’ll move them back to the right edge of the screen, forming a continuous chain of background sprites.</p>
+<p>To make this work we’re going to use a new data type called <code class="language-swift">SKAction</code>, which is responsible for moving, rotating, scaling, and more – all using animation.</p>
+<p>Like I said, both the sky and ground are the width of our screen, but that masks a piece of iOS magic. They are 2048 pixels wide, but if you remember our I said our game scene was 1024x768 <em>points</em> wide. </p>
+<p>Points are virtual pixels, which allows developers to design their apps once and have them work on all devices. On old, non-retina devices, one point is equal to one pixel, on retina devices it’s two points to the pixel, and on Retina HD and Super Retina devices it’s three points.</p>
+<p>For coding purposes, this means we always write as if our game scene were 1024x768 in size. iOS then loads in double-sized images so they look sharp on retina devices – we don’t need to worry about it.</p>
+<p>I’m not explaining this so I can bore you, but because it matters in the code we’ll write. Taking our sky background for example, we’re going to create one of them at X:0 and the other at X:1023, which is just at the right edge of our screen. </p>
+<p><strong>Note:</strong> X:1023 isn’t a typo: it’s a simple trick to avoid tiny 1-pixel gaps appearing between our sprites as they slide across the screen.</p>
+<p>Because we’re going to make both the sky and ground move, we’ll wrap this functionality in a new method called <code class="language-swift">parallaxScroll()</code>. This will take several parameters:</p>
+<ul>
+<li>An image name to load.</li>
+<li>The Y coordinate to place it at.</li>
+<li>The Z position where it should be rendered.</li>
+<li>The speed it should move.</li>
+<li>Whether we should add physics to it or not.</li>
+</ul>
+<p>We won’t be using the physics parameter just yet, but it’ll be important soon enough.</p>
+<p>Let’s start with the method definition. Put this after the end of the <code class="language-swift">update()</code> method:</p>
+<pre><code class="language-swift">func parallaxScroll(image: String, y: CGFloat, z: CGFloat, duration: Double, needsPhysics: Bool) {
+    // more code here
+}</code></pre>
+<p>Those parameters let us distinguish fully between the background sky and the ground we’ll place at the bottom of the screen.</p>
+<p>Inside we’re going to create two sprite nodes, one positioned near the right of the screen. These two nodes are otherwise identical, even in the way they slide across the screen, so we can put this code in a loop that counts from 0 to 1 inclusive. We can then use the loop variable – the bit that stores 0 or 1 – to calculate the X position of the node by multiplying it by 1023.</p>
+<p>The interesting part is how we’re going to move the sprite so it scrolls forever. <code class="language-swift">SKAction</code> is great for this: we’ll use its <code class="language-swift">moveBy()</code> action to move each node by X:-1024 over whatever duration got passed into the method, then another <code class="language-swift">moveBy()</code> action to move it by X:1024 with a duration of 0 – i.e., immediately.</p>
+<p>Helpfully, <code class="language-swift">SKAction</code> can create sequences of those individual actions so they run one after the other. Even better, it can repeat sequences forever, so the two nodes will move continuously for as long as our game runs.</p>
+<p>Add this inside the <code class="language-swift">parallaxScroll()</code> method:</p>
+<pre><code class="language-swift">// run this code twice
+for i in 0 ... 1 {
+    let node = SKSpriteNode(imageNamed: image)
+
+    // position the first node on the left, and the second on the right
+    node.position = CGPoint(x: 1023 * CGFloat(i), y: y)
+    node.zPosition = z
+    addChild(node)
+
+    // make this node move the width of the screen by whatever duration was passed in
+    let move = SKAction.moveBy(x: -1024, y: 0, duration: duration)
+
+    // make it jump back to the right edge
+    let wrap = SKAction.moveBy(x: 1024, y: 0, duration: 0)
+
+    // make these two as a sequence that loops forever
+    let sequence = SKAction.sequence([move, wrap])
+    let forever = SKAction.repeatForever(sequence)
+
+    // run the animations
+    node.run(forever)
+}</code></pre>
+<p>To finish this step we need to call <code class="language-swift">parallaxScroll()</code> twice inside the <code class="language-swift">didMove(to:)</code> method – once for the sky and once for the ground.</p>
+<p>To make the parallax effect work we’re going to place the sky at Z position -3 so that it’s right at the back of the screen, then place ground at Z position -1. We’ll be using -2 later on when we add some obstacles for the player to avoid.</p>
+<p>As for the Y positions, that will be 0 for the background so that it’s centered in the game scene, but -340 for the ground so that it sits at the bottom.</p>
+<p>Add these lines to the <code class="language-swift">didMove(to:)</code> method:</p>
+<pre><code class="language-swift">parallaxScroll(image: "sky", y: 0, z: -3, duration: 10, needsPhysics: false)
+parallaxScroll(image: "ground", y: -340, z: -1, duration: 6, needsPhysics: true)</code></pre>
+<p>Run the game now and you should see our parallax effect in action – the sky will scroll slowly, and the ground will scroll more quickly.</p>
+<p>At this point in the game the player can fly through the air, while sky and ground scroll by in parallax. What we need now is some challenge: what should we make the player avoid in order to stay alive?</p>
+<h2>Please make your choice:</h2>
+<ul>
+<li><a href="3~0-2-1-0-0-x-x-x-x-x-x.html">Balloons</a></li>
+<li><a href="3~0-2-1-0-1-x-x-x-x-x-x.html">Birds</a></li>
+<li><a href="3~0-2-1-0-2-x-x-x-x-x-x.html">Rocks</a></li>
+</ul>

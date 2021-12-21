@@ -1,0 +1,65 @@
+<h1>When they guess correctly</h1>
+<p>When the user taps the correct item in our grid we’ll make sparks fly out from where they touched then level up.</p>
+<p>This takes two steps: write code to respond to taps and decide whether they were right or wrong, then of course make sparks fly out from where they touched to celebrate.</p>
+<p>Our project has an empty <code class="language-swift">touchesBegan()</code> method, which is the perfect place to figure out whether the user touched the right or wrong answer. We’ll be given a set containing their screen touches and it’s our job to figure out what got tapped in our game.</p>
+<p>Sets are like arrays that contain each item only once, and it’s used here because the iPad supports multi-touch. It’s possible the user might touch multiple things at the same time, although we don’t need that here.</p>
+<p>So, we’ll start by fetching the first touch that got passed to us. Add this to <code class="language-swift">touchesBegan()</code>:</p>
+<pre><code class="language-swift">guard let touch = touches.first else { return }</code></pre>
+<p>That assigns the first touch (a <code class="language-swift">UITouch</code> object) to the <code class="language-swift">touch</code> constant. Next we must find where that touch is in our scene, and <code class="language-swift">UITouch</code> has a method for that called <code class="language-swift">location(in:)</code> – we’ll pass it <code class="language-swift">self</code> so that it checks the current scene.</p>
+<p>Add this below the previous line:</p>
+<pre><code class="language-swift">let location = touch.location(in: self)</code></pre>
+<p>Next we need the list of SpriteKit nodes at that location. This is also one line of code because our game scene has a <code class="language-swift">nodes(at:)</code> method to do just that. We’ll pass it our touch’s location, and it will return all the nodes that are there.</p>
+<p>Add this line next:</p>
+<pre><code class="language-swift">let tappedNodes = nodes(at: location)</code></pre>
+<p>We now know which nodes were tapped, but that includes <em>all</em> nodes under the user’s finger. For us that will always include the background, and might also include one of our lights. SpriteKit sorts this array by Z position, so nodes that are towards the top (like our lights) come before nodes that are towards the bottom (like our background).</p>
+<p>This means we can read the first node from <code class="language-swift">tappedNodes</code> and check whether its name is “correct” or “wrong” – SpriteKit will ensure that’s one of our lights rather than the background, unless of course the user tapped an empty area of the grid.</p>
+<p>Add this to <code class="language-swift">touchesBegan()</code>:</p>
+<pre><code class="language-swift">guard let tapped = tappedNodes.first else { return }
+
+if tapped.name == "correct" {
+    print("Correct!")
+} else if tapped.name == "wrong" {
+    print("Wrong!")
+}</code></pre>
+<p>Try the game to make sure everything works – Xcode’s log should print “Wrong!” or “Correct!” depending on what you tap.</p>
+<p>That’s not much fun, so let’s move on and make sparks fly out from where they touched.</p>
+<p>First, create a method called <code class="language-swift">correctAnswer()</code>, after <code class="language-swift">touchesBegan()</code>:</p>
+<pre><code class="language-swift">func correctAnswer(node: SKNode) {
+}</code></pre>
+<p>I’ve made that accept the node that was tapped so we can position things around it. Next, replace <code class="language-swift">print("Correct!")</code> with a call to that method:</p>
+<pre><code class="language-swift">if tapped.name == "correct" {
+    correctAnswer(node: tapped)</code></pre>
+<p>Now all we need to do is fill in the <code class="language-swift">correctAnswer()</code> method with code to make sparks. This is a perfect use for SpriteKit’s particle systems, which are a high-speed way of simulating things like rain, smoke, and fire – or sparks, in our case.</p>
+<p>Go to the File menu and choose New &gt; File. From the list that appears, select iOS &gt; SpriteKit Particle File, then click Next. Select Spark for your template, click Next, then name the file Sparks.sks. Xcode will open the file in its built-in particle editor, and you should see colorful sparks exploding then falling down.</p>
+<p>We need some changes to make these particles work better in our game. First, for Emitter change Birthrate to 5000 and Maximum to 400, which causes the particles to fire rapidly then stop. Second, change the X and Y values for Position Range to be 32, so they appear from the square underneath the player’s finger.</p>
+<p>You’re welcome to experiment later, but for now let’s make the particles appear when the user selects the correct answer.</p>
+<p>This takes three steps:</p>
+<ol>
+<li>Load the particles.</li>
+<li>Position them at the same place as the correct node in our grid.</li>
+<li>Wait for one second then destroy the sparks, increase our <code class="language-swift">level</code> property, then call <code class="language-swift">createLevel()</code> to create the new grid of lights.</li>
+</ol>
+<p>You already saw that SpriteKit makes particle systems easy to design, and I’m pleased to say it makes them easy to load too: there’s a dedicated class called <code class="language-swift">SKEmitterNode()</code> that loads any particle file.</p>
+<p>So, let’s start by loading our sparks file and positioning it over the correct answer. Put this in <code class="language-swift">correctAnswer()</code> now:</p>
+<pre><code class="language-swift">if let sparks = SKEmitterNode(fileNamed: "Sparks") {
+    sparks.position = node.position
+    addChild(sparks)
+    // more code here
+}</code></pre>
+<p>Next we need to wait for one second then destroy the sparks, increase our <code class="language-swift">level</code> property, then call <code class="language-swift">createLevel()</code> to create the new grid of lights.</p>
+<p>iOS has a framework called Grand Central Dispatch (GCD) that lets us run code after a delay: we tell it when our code should run by adding a number of seconds to the current time, and it does the rest.</p>
+<p>There’s one catch: if we use any properties or methods from our <code class="language-swift">GameScene</code> class, we need to prefix them with <code class="language-swift">self.</code> otherwise Xcode complains. There’s no other work to do, and in fact Xcode complains so much that you have no choice, so I wouldn’t worry too much.</p>
+<p>Put this just after the <code class="language-swift">addChild(sparks)</code> call in <code class="language-swift">correctAnswer()</code>:</p>
+<pre><code class="language-swift">DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+    sparks.removeFromParent()
+    self.level += 1
+    self.createLevel()
+}</code></pre>
+<p>Try the game now and you should see sparks fly when you get the answer right.</p>
+<p>Now, your next choice: what should happen if they get the answer <em>wrong</em>? </p>
+<h2>Please make your choice:</h2>
+<ul>
+<li><a href="2~0-1-0-0-0-0-x-x-x-x-x.html">Make them guess again</a></li>
+<li><a href="2~0-1-0-0-0-1-x-x-x-x-x.html">Move them a level down</a></li>
+<li><a href="2~0-1-0-0-0-2-x-x-x-x-x.html">Move them back to level 1</a></li>
+</ul>

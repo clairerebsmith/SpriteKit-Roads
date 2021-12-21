@@ -1,0 +1,107 @@
+<h1>Creating levels</h1>
+<p>Right now our grid is full of animals, but in practice we want to start with only a handful visible and add more as the player levels up.</p>
+<p>To make this work we’re going to add a <code class="language-swift">level</code> integer that tracks which level number is currently being played, starting with 1. So, add this property to the <code class="language-swift">GameScene</code> class:</p>
+<pre><code class="language-swift">var level = 1</code></pre>
+<p>Next we’re going to make a <code class="language-swift">createLevel()</code> method that picks out some animals to show in the grid. The amount we show will depend on the value of <code class="language-swift">level</code>: we’ll show at least 5, then show 4 more for every level the player goes up.</p>
+<p>This is done in four steps:</p>
+<ol>
+<li>Create a shuffled array of all the items in our grid. For our purposes, that’s all child nodes that don’t have the name “background”.</li>
+<li>Hide all the existing animals so the grid is clear. This is done by adjusting their <code class="language-swift">alpha</code> property: 0 means “invisible” and 1 means “fully visible”.</li>
+<li>Decide which item in the grid is going to be the correct one – the one the user needs to tap to level up.</li>
+<li>Fill all the animals we want to show with one of our images, giving them the name “wrong” or “correct” so we can check for correctness, and showing them again.</li>
+</ol>
+<p>Let’s start with the easy part: figuring out how many items to show, shuffling the list of grid items, then hiding them all. Add this method now:</p>
+<pre><code class="language-swift">func createLevel() {
+    var itemsToShow = 5 + (level * 4)
+
+    // find all nodes that belong to our scene that are not called "background"
+    let items = children.filter { $0.name != "background" }
+
+    // shuffle those nodes so they are in a random order
+    let shuffled = items.shuffled() as! [SKSpriteNode]
+
+    // loop over them
+    for item in shuffled {
+        // and hide each one
+        item.alpha = 0
+    }
+
+    // more work to do
+}</code></pre>
+<p>Yes, Xcode will warn you that <code class="language-swift">itemsToShow</code> doesn’t need to be variable, but we’ll be changing it later so please leave it alone!</p>
+<p>Go ahead and add a call to that <code class="language-swift">createLevel()</code> method by placing this after the <code class="language-swift">createGrid()</code> call in <code class="language-swift">didMove(to:)</code>:</p>
+<pre><code class="language-swift">createLevel()</code></pre>
+<p>Now for the interesting part: in this game we’re showing a collection of animals, and it’s down to the player to find the one that appears only once.</p>
+<p>For parts 3 and 4 of this method we’ll shuffle an array of animals then remove the last one for the correct answer. We’ll then count through as many animals as we need to show, adding two of each.</p>
+<p>We defined <code class="language-swift">itemsToShow</code> like this:</p>
+<pre><code class="language-swift">let itemsToShow = 5 + (level * 4)</code></pre>
+<p>That starts with 5 and adds  for each level. As a result, <code class="language-swift">itemsToShow</code> is always <em>odd</em>: one for the correct answer, and the rest added in pairs so there are always at least two of each.</p>
+<p>Replace <code class="language-swift">// more work to do</code> with this:</p>
+<pre><code class="language-swift">// create and shuffle an array of animals
+let animals = ["elephant", "giraffe", "hippo", "monkey", "panda", "parrot", "penguin", "pig", "rabbit", "snake"]
+var shuffledAnimals = animals.shuffled()
+
+// remove one for the correct answer
+let correct = shuffledAnimals.removeLast()</code></pre>
+<p>Slightly trickier is how we ensure wrong animals are paired.</p>
+<p>This is done with three variables: <code class="language-swift">showAnimals</code> stores the animals we’ll place, <code class="language-swift">placingAnimal</code> stores which animal we’re currently placing, and <code class="language-swift">numUsed</code> stores how often the current animal was placed.</p>
+<p>Using these our algorithm is as follows:</p>
+<ol>
+<li>Loop from 1 to how many items we need.</li>
+<li>Add 1 to <code class="language-swift">numUsed</code> and place the current animal.</li>
+<li>If <code class="language-swift">numUsed</code> is 2 then we’ve placed the current animal twice, so reset it to 0 and add 1 to <code class="language-swift">placingAnimal</code>.</li>
+<li>If <code class="language-swift">placingAnimal</code> equals the number of animals we have, reset it to 0 so we start placing the first animal again.</li>
+</ol>
+<p>This approach ensures each wrong animal is placed at least twice. Add this after the previous code:</p>
+<pre><code class="language-swift">var showAnimals = [String]()
+var placingAnimal = 0
+var numUsed = 0
+
+for _ in 1 ..&lt; itemsToShow {
+    // mark that we've used this animal
+    numUsed += 1
+
+    // place it
+    showAnimals.append(shuffledAnimals[placingAnimal])
+
+    // if we've used this animal twice, go to the next one
+    if numUsed == 2 {
+        numUsed = 0
+        placingAnimal += 1
+    }
+
+    // if we've gone through all animals, restart
+    if placingAnimal == shuffledAnimals.count {
+        placingAnimal = 0
+    }
+}</code></pre>
+<p>Once that runs, <code class="language-swift">showAnimals</code> will contain an array of animal names. Next we must assign them to grid items, name them “wrong”, and show them. We already have the <code class="language-swift">shuffled</code> array containing our randomized grid items, so each time we pull an animal from <code class="language-swift">showAnimals</code> we’ll find the matching item in <code class="language-swift">shuffled</code> and modify it.</p>
+<p>For this task we need a new class called <code class="language-swift">SKTexture</code>. We already used <code class="language-swift">SKSpriteNode</code> to show sprites, and <code class="language-swift">SKTexture</code> is the image data behind the scenes – the raw texture that got loaded.</p>
+<p>This matters because we filled our grid with elephants, so rather than removing sprites and re-adding them with new textures we’ll change them in place by changing their <code class="language-swift">texture</code> property.</p>
+<p>Add this below the previous loop:</p>
+<pre><code class="language-swift">for (index, animal) in showAnimals.enumerated() {
+    // pull out the matching item
+    let item = shuffled[index]
+
+    // assign the correct texture
+    item.texture = SKTexture(imageNamed: animal)
+
+    // show it
+    item.alpha = 1
+
+    // mark it as wrong
+    item.name = "wrong"
+}</code></pre>
+<p>The final task is showing the <em>correct</em> answer, which requires setting the texture of one of the <code class="language-swift">shuffled</code> items to be the texture for <code class="language-swift">correct</code> then naming it “correct”.</p>
+<p>We’re using several items from <code class="language-swift">shuffled</code> already, so the easiest approach is to use the <em>last</em> array item. Put this after the loop you just added:</p>
+<pre><code class="language-swift">shuffled.last?.texture = SKTexture(imageNamed: correct)
+shuffled.last?.alpha = 1
+shuffled.last?.name = "correct"</code></pre>
+<p>That’s all the code we need to see our progress so far – press Cmd+R to run the game, and you should now see only a few animals from the grid are visible, and randomly placed around. Progress!</p>
+<p>Now that our game has one correct answer and several wrong ones, it’s time for another choice: what should happen when the user selects the correct answer?</p>
+<h2>Please make your choice:</h2>
+<ul>
+<li><a href="2~0-0-0-0-0-x-x-x-x-x-x.html">Confetti falls down</a></li>
+<li><a href="2~0-0-0-0-1-x-x-x-x-x-x.html">The wrong animals fade away</a></li>
+<li><a href="2~0-0-0-0-2-x-x-x-x-x-x.html">Show a message on the screen</a></li>
+</ul>

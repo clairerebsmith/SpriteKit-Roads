@@ -1,0 +1,33 @@
+<h1>Avoiding rocks</h1>
+<p>We’re going to create rocks for the player to avoid, which means they’ll need to tap the screen to move up or let their plane fall with gravity in order to stay safe.</p>
+<p>To make this work you need to meet a new data type called <code class="language-swift">Timer</code>, which is designed to run any method you want at a time interval you specify. In our case, we’re going to write a new method called <code class="language-swift">createObstacle()</code> and ask <code class="language-swift">Timer</code> to run it every 2 seconds. I’ve found that difficulty level works great for me, but you can try experimenting later on.</p>
+<p>Most of the <code class="language-swift">createObstacle()</code> method will be familiar to you: it will create a new sprite node, position it, then call <code class="language-swift">addChild()</code> so it appears in our game scene. We’ll then use <code class="language-swift">SKAction</code> to make the rocks move across the screen. </p>
+<p>What’s new is the need to position the rocks at random Y positions. This is where the game’s difficulty comes in, because if we always used the <em>same</em> Y position then it would be trivial and no fun at all.</p>
+<p>Swift comes with tools specifically designed for generating random numbers, and a really useful one is the <code class="language-swift">random(in:)</code> method of numeric types such as <code class="language-swift">Int.random(in:)</code> and <code class="language-swift">CGFloat.random(in:)</code>. You call these using a range such as 1...5, and you’re guaranteed to get a number inside that range.</p>
+<p>We’re going to create our rocks obstacles with a lowerbound of -170 and an upperbound of 170, which should position them neatly just above the ground.</p>
+<p>First, drag enemy-ground-hi@2x.png and enemy-ground-lo@2x.png from the files for this project into Xcode’s asset catalog. There are two, but we’ll only be showing one each time so the player has something to dodge.</p>
+<p>Second, add this method below <code class="language-swift">parallaxScroll()</code>:</p>
+<pre><code class="language-swift">func createObstacle() {
+    // create and position the ground, choosing either high or low to make the player dodge them
+    let options = ["enemy-ground-lo", "enemy-ground-hi"]
+    let chosen = Int.random(in: 0...1)
+    let obstacle = SKSpriteNode(imageNamed: options[chosen])
+    obstacle.zPosition = -2
+    obstacle.position.x = 768
+    addChild(obstacle)
+
+    // decide where to create it
+    obstacle.position.y = CGFloat.random(in: -170 ..&lt; 170)
+
+    // make it move across the screen
+    let action = SKAction.moveTo(x: -768, duration: 9)
+    obstacle.run(action)
+}</code></pre>
+<p>Notice how we’re making the <code class="language-swift">SKAction</code> move with a duration of 9 – that is 50% longer than the duration used to move the ground, but at the same time it the ground has 50% further to move, so it will look fixed on the screen.</p>
+<p>The last step is to make the <code class="language-swift">createObstacle()</code> method run every 2 seconds, which is where <code class="language-swift">Timer</code> comes in. First, add this property in the <code class="language-swift">GameScene</code> class:</p>
+<pre><code class="language-swift">var timer: Timer?</code></pre>
+<p>Second, we need to create that timer in the <code class="language-swift">didMove(to:)</code> method, telling it what to do and how often to do it. For us that means calling <code class="language-swift">createObstacle()</code> on <code class="language-swift">self</code> – i.e, the current game scene – every 2 seconds. </p>
+<p>The <code class="language-swift">Timer</code> class lets you specify whether the timer should repeat or not – that is, should it run <em>every</em> 2 seconds, or just wait 2 seconds then run once. It also lets you attach “user info” to the timer, which is a dictionary of data containing any information you want to be made available inside the method; we don’t care about that here, though.</p>
+<p>Please add this code to your <code class="language-swift">didMove(to:)</code> method:</p>
+<pre><code class="language-swift">timer = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(createObstacle), userInfo: nil, repeats: true)</code></pre>
+<p>And that completes this step – go ahead and run the game now and you should see rocks being created every 2 seconds!</p><ul><li><a href="3~0-0-1-0-2-0-x-x-x-x-x.html">Go to next chapter</a></li></ul>

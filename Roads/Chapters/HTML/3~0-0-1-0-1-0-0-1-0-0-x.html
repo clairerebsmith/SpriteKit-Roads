@@ -1,0 +1,45 @@
+<h1>Fixing the bugs</h1>
+<p>Our game has three problems that need to be resolved before we can consider it finished:</p>
+<ol>
+<li>The player can move off screen, and if they do our physics simulation might start spinning them around.</li>
+<li>When  move off screen we don’t remove them from the game scene. This means eventually our game will start to slow down because it has so many old  around.</li>
+<li>Most importantly, when the player finally dies there’s no way for them to restart the game.</li>
+</ol>
+<p>All of those problems are easy to fix, so let’s dive right in.</p>
+<p>First, we can stop the player from moving off screen by adding a check to <code class="language-swift">update()</code>: if their Y position is greater than 300 then force it back to 300. Put this code into <code class="language-swift">update()</code> now:</p>
+<pre><code class="language-swift">if player.position.y &gt; 300 {
+    player.position.y = 300
+}</code></pre>
+<p>The more subtle underlying problem here is that by default SpriteKit simulates the player bumping in to anything else in our game scene. This is sometimes what you want, but here we don’t – we want to <em>know</em> if the player hits anything else, but we don’t want that collision to be simulated by making the player spin off in a different direction.</p>
+<p>The fix for this is just one line of code, disabling collisions for the player. Add this to the <code class="language-swift">didMove(to:)</code> directly after the <code class="language-swift">player.physicsBody?.categoryBitMask = 1</code> line:</p>
+<pre><code class="language-swift">player.physicsBody?.collisionBitMask = 0</code></pre>
+<p>To fix the second bug we need to modify the <code class="language-swift">SKAction</code> we give to all the parts of our game that need to be destroyed when they move off screen.</p>
+<p>Here’s the code from <code class="language-swift">createObstacle()</code>:</p>
+<pre><code class="language-swift">let action = SKAction.moveTo(x: -768, duration: 6)</code></pre>
+<p>We’re going to replace that with a more advanced action: we’ll move across the screen, then remove the sprite from the game scene. These two need to be wrapped inside an action sequence so they run in order.</p>
+<p>Replace the existing <code class="language-swift">let action</code> line of code with this:</p>
+<pre><code class="language-swift">let move = SKAction.moveTo(x: -768, duration: 6)
+let remove = SKAction.removeFromParent()
+let action = SKAction.sequence([move, remove])</code></pre>
+<p>And that’s two problems fixed already – not bad!</p>
+<p>The final problem is a little harder, because we need to create a new game scene and show it after a delay. </p>
+<p>We already used delays back when we were added coins for the player to collect, and here the solution is identical: we’ll use <code class="language-swift">DispatchQueue.main.asyncAfter()</code> to run some code after a delay.</p>
+<p>We’re going to use GCD’s <code class="language-swift">asyncAfter()</code> method to wait two seconds, then create a new <code class="language-swift">GameScene</code> instance. This is done using three lines of code:</p>
+<ol>
+<li>We need to create a new <code class="language-swift">GameScene</code> object by asking it to load the GameScene file. This is a file in our project called GameScene.sks, but it’s just a big empty space that’s the size of a landscape iPad.</li>
+<li>In order to make the new game scene fit all iPads, we need to tell SpriteKit to use the scale mode <code class="language-swift">.aspectFill</code> – that means “take up all available space.”</li>
+<li>Finally, we can show the new game scene immediately by calling <code class="language-swift">presentScene()</code> on the view that controls our game scene. In regular iOS apps this view does lots more, but in SpriteKit its only job is to host our game scene.</li>
+</ol>
+<p>To make the code easier to understand I’ve added some comments to each line. Add this code to the <code class="language-swift">playerHit()</code> method, just below the <code class="language-swift">music.removeFromParent()</code> line:</p>
+<pre><code class="language-swift">// wait for two seconds then run some code
+DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+    // create a new scene from GameScene.sks
+    if let scene = GameScene(fileNamed: "GameScene") {
+        // make it stretch to fill all available space
+        scene.scaleMode = .aspectFill
+
+        // present it immediately
+        self.view?.presentScene(scene)
+    }
+}</code></pre>
+<p>And that’s the third bug fixed – your project is complete!</p><ul><li><a href="3~0-0-1-0-1-0-0-1-0-0-0.html">Go to next chapter</a></li></ul>

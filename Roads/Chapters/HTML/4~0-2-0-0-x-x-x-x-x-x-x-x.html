@@ -1,0 +1,72 @@
+<h1>Zap to win</h1>
+<p>In our game players zap aliens to win, and we decide how many points they score by seeing how big a color group they tapped. So, if they tapped a group of three items we remove all three, but if there were more then we remove all of them and award more points.</p>
+<p>This requires a technique called <em>recursion</em>: a function that calls itself repeatedly. This is because we don’t know how many matches to expect when the user touches the screen, so we’ll make a sort of “flood fill”.</p>
+<p>Here’s how it works:</p>
+<ul>
+<li>We’ll create a <code class="language-swift">currentMatches</code> property that stores a set of items that are currently matched. Sets are like arrays, except they don’t have an order and can only contain each item once.</li>
+<li>Initially we’ll give it the alien that was tapped.</li>
+<li>We’ll find all the same-colored aliens that are above, below, left, and right of that first alien, and call the method for each of them.</li>
+<li>The method then finds all same-colored aliens that are above, below, left, and right of <em>those</em>, and so on, until all matching adjacent aliens are inside <code class="language-swift">currentMatches</code>.</li>
+</ul>
+<p>Two parts of that are harder than you might realize, but there’s a solution for both.</p>
+<p>First, how can we find the aliens that are adjacent to the one that was tapped? Well, add this method to GameScene.swift:</p>
+<pre><code class="language-swift">func item(at point: CGPoint) -&gt; Item? {
+    let items = nodes(at: point).compactMap { $0 as? Item }
+    return items.first
+}</code></pre>
+<p>As you can see, you give that a <code class="language-swift">CGPoint</code> – where to look for aliens – and it returns an optional <code class="language-swift">Item</code>. </p>
+<p>The <code class="language-swift">nodes(at:)</code> method belongs to our scene, and will return a list of all SpriteKit nodes at a screen location. The thing is, we don’t want <em>all</em> nodes – we don’t want to destroy the background, for example. That’s where <code class="language-swift">compactMap()</code> comes in: it means “only return the nodes that are actually an instance of <code class="language-swift">Item</code>.”</p>
+<p>Once that completes, returning <code class="language-swift">items.first</code> will either contain one alien, or nothing at all if we checked outside the grid.</p>
+<p>The second tricky part is how we stop the loop continuing forever. Think about it: if the user taps a blue alien, we might look above and find another blue alien there. So, we search from that second blue alien, and find that – surprise! – there’s a blue alien below, although obviously this is just the first one again.</p>
+<p>This would continue forever unless we stopped it: the first one finds the second, the second finds the first, the first finds the second, and so on until your game crashed.</p>
+<p>Fixing this is as simple as using the <code class="language-swift">currentMatches</code> set: whenever we match an aliens we’ll add it to <code class="language-swift">currentMatches</code> so we don’t check it again.</p>
+<p>Start by adding this property to <code class="language-swift">GameScene</code>:</p>
+<pre><code class="language-swift">var currentMatches = Set&lt;Item&gt;()</code></pre>
+<p>Now for the important method: <code class="language-swift">match(item:)</code>. This will:</p>
+<ol>
+<li>Create an array of items to check called <code class="language-swift">checkItems</code>. This will be of type <code class="language-swift">[Item?]</code> because we’ll fill it with results from calling <code class="language-swift">item(at:)</code>.</li>
+<li>Insert the current item in <code class="language-swift">currentMatches</code>, so it isn’t checked again.</li>
+<li>Append to <code class="language-swift">checkItems</code> the results of calling <code class="language-swift">item(at:)</code> above, below, left, and right of our current item.</li>
+<li>Loop over <code class="language-swift">checkItems</code>, reading only non-nil items.</li>
+<li>Check if the item exists in <code class="language-swift">currentMatches</code> so we don’t check it again.</li>
+<li>Check if the item has the same name as the current item, and if so call <code class="language-swift">match(item:)</code> again from there.</li>
+</ol>
+<p>It’s that last part that makes the function recursive: we start matching whichever alien was tapped, then move to matching aliens that are adjacent, then outwards further and further.</p>
+<p>Add this method to <code class="language-swift">GameScene</code> now:</p>
+<pre><code class="language-swift">func match(item original: Item) {
+    var checkItems = [Item?]()
+
+    currentMatches.insert(original)
+    let pos = original.position
+
+    checkItems.append(item(at: CGPoint(x: pos.x, y: pos.y - itemSize)))
+    checkItems.append(item(at: CGPoint(x: pos.x, y: pos.y + itemSize)))
+    checkItems.append(item(at: CGPoint(x: pos.x - itemSize, y: pos.y)))
+    checkItems.append(item(at: CGPoint(x: pos.x + itemSize, y: pos.y)))
+
+    for case let check? in checkItems {
+        if currentMatches.contains(check) { continue }
+
+        if check.name == original.name {
+            match(item: check)
+        }
+    }
+}</code></pre>
+<p>Once we have all matching aliens we can remove them from the game. We’ll add a more advanced implementation soon, but here’s something simple to get us started – add this method below <code class="language-swift">match(item:)</code>:</p>
+<pre><code class="language-swift">func removeMatches() {
+    for item in currentMatches {
+        item.removeFromParent()
+    }
+}</code></pre>
+<p>Finally, we start our recursive function when the user selects an alien on the screen. This is the job of the <code class="language-swift">touchesBegan()</code> method, which gets called when the user places one or more fingers on the screen.</p>
+<p>We don’t need multitouch here, so we’ll start by pulling out the first touch that took place. We can find where that took place in the game by calling our scene’s <code class="language-swift">location(in:)</code> method, and pass <em>that</em> to our <code class="language-swift">item(at:)</code> method to figure out which alien was tapped.</p>
+<p>Once we know that, we’ll clear the <code class="language-swift">currentMatches</code> set, call <code class="language-swift">match(item:)</code> with whatever they tapped, then call <code class="language-swift">removeMatches()</code> to destroy all the matched aliens.</p>
+<p>Put this code inside your <code class="language-swift">touchesBegan()</code> method:</p>
+<pre><code class="language-swift">guard let touch = touches.first else { return }
+let location = touch.location(in: self)
+guard let tappedItem = item(at: location) else { return }
+
+currentMatches.removeAll()
+match(item: tappedItem)
+removeMatches()</code></pre>
+<p>Press Cmd+R to give it a try – you should be able to tap any color groups to see them disappear!</p><ul><li><a href="4~0-2-0-0-0-x-x-x-x-x-x-x.html">Go to next chapter</a></li></ul>

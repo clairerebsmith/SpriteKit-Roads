@@ -1,0 +1,37 @@
+<h1>Flying a plane</h1>
+<p>In this game the player will control a plane, and it’s their job to pilot that plane through the air while avoiding any obstacles that come their way.</p>
+<p>We’ll be coming to the obstacles later on, but first we want to get the player’s plane on the screen. This is a nice and easy task, and only takes a few steps:</p>
+<ol>
+<li>Copy the plane image into our project’s asset catalog.</li>
+<li>Create a property for the player so we can reference them in code anywhere in the game.</li>
+<li>Fill that property with the plane image.</li>
+<li>Place the plane on the screen.</li>
+</ol>
+<p>At first it won’t move anywhere, but we’ll fix that soon.</p>
+<p>In your Xcode project look for the project navigator on the left of the Xcode window. This is where all the files in your project are stored – if you don’t see it, press Cmd+1 on your keyboard to bring it up.</p>
+<p>Right now the file we care about is called Assets.xcassets, which is an asset catalog. This is iOS’s preferred way of storing images and colors, and we’re going to start by copying in the file plane@2x.png from the project files for this book – you’ll find it in the Assets &gt; Project3 folder. Select the asset catalog to open it, then drag that image into there below AppIcon, and you should see it appear immediately.</p>
+<p><strong>Tip:</strong> The file has @2x in its filename because it’s designed for retina devices. All iPads use retina screens, but if you were designing for iPhone you’d need to create @3x graphics (50% larger than @2x) to cope with their Retina HD screens.</p>
+<p>To place that image correctly in our game, we need to add three lines of code to GameScene.swift – that’s where all the code for our game is stored. So, find and click on that in the project navigator to open it for editing.</p>
+<p>The first line of code will create a property for the player’s image on the screen. Having a property means we can refer to the player anywhere in our game, rather than creating a variable inside a method and losing it immediately.</p>
+<p>Everything in a SpriteKit scene is representing using a node, because SpriteKit puts all those nodes together into a virtual tree that it can manage efficiently. In this game our player will be represented using an image, which in SpriteKit makes it a special node type called <code class="language-swift">SKSpriteNode</code> – “sprite” is the name usually given to image textures when they appear in a game.</p>
+<p>So, the first line of code we’ll write will create a <code class="language-swift">player</code> property, giving it the type <code class="language-swift">SKSpriteNode</code>, and asking SpriteKit to create that node from the image <code class="language-swift">plane</code>. Note: we don’t need the @2x or .png part of the filename here – that’s all taken care of by the asset catalog.</p>
+<p>Inside GameScene.swift, add this line of code directly before the start of the <code class="language-swift">didMove(to:)</code> method:</p>
+<pre><code class="language-swift">let player = SKSpriteNode(imageNamed: "plane")</code></pre>
+<p>The second line of code is going to position the player. SpriteKit measures its positions from the center of each object in its node tree, with everything having the default position of X:0 Y:0. By default, our player will be at X:0 Y:0 relative to its parent, which will be our game scene, and that parent measures its positions relative to its center. </p>
+<p>Putting all that together, by default our player will be position smack in the center of the game screen. Sometimes that’s exactly what you want, but in this game we want to position the player near the top-left corner.</p>
+<p>If you’ve ever played Flappy Bird, you’ll know the player is constantly falling, and the game ends if they hit the bottom of the screen. Because of that, we need to place them high up so they start in a position of safety by default. You’ll also know they encounter various obstacles coming from the right edge of the screen, and because of <em>that</em> we want to place them on the left so they have lots of time to avoid each obstacle.</p>
+<p>Our game scene is precisely 1024x768 points wide, regardless of which iPad it’s running on. Remember, SpriteKit considers X:0 Y:0 to be the center of the screen, which means X:512 is the right edge and Y:384 is the top edge.</p>
+<p><strong>Note:</strong> If you’ve ever programmed in UIKit, SpriteKit’s Y coordinate might confuse you because it runs in the opposite direction to UIKit – higher numbers are higher up.</p>
+<p>Through a little trial and error, I found the best place to put the player was at X:-400, Y:250. To make that happen we need to assign a <code class="language-swift">CGPoint</code> to the player’s <code class="language-swift">position</code> property once the game is ready to run, so please add this line of code inside the <code class="language-swift">didMove(to:)</code> method:</p>
+<pre><code class="language-swift">player.position = CGPoint(x: -400, y: 250)</code></pre>
+<p>That’s two lines of code down, and the last is nice and simple. We already created the sprite node and we told it where it should be positioned on the screen, but we <em>haven’t</em> told SpriteKit to add it to the game scene’s node tree. </p>
+<p>To make that happen we need to add one more line of code inside <code class="language-swift">didMove(to:)</code>: a call to the <code class="language-swift">addChild()</code> method. This adds one node inside another, placing it relative to its parents position.</p>
+<p>So, add this line to the end of <code class="language-swift">didMove(to:)</code>:</p>
+<pre><code class="language-swift">addChild(player)</code></pre>
+<p>That completes this step, so please press Cmd+R to build and run your app – you should see the player’s plane sitting just off the edges in the top-left corner.</p>
+<p>Of course, just having a static player on the screen is dull, so it’s time for another choice. In this game the player crashes when they hit the bottom of the screen, but the question is should the player have to tap repeatedly to pull up, or should they press and hold?</p>
+<h2>Please make your choice:</h2>
+<ul>
+<li><a href="3~0-0-0-x-x-x-x-x-x-x-x.html">Press and hold to move up</a></li>
+<li><a href="3~0-0-1-x-x-x-x-x-x-x-x.html">Tap to pull up</a></li>
+</ul>

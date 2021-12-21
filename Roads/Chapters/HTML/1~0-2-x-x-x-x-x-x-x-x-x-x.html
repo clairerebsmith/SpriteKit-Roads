@@ -1,0 +1,33 @@
+<h1>Drawing a background</h1>
+<p>In this game the player is going to be a motorbike racing along a road. Their job will be to stay alive as long as possible so they can score points, but before we can do that we need to set the scene by creating a background that shows some road.</p>
+<p>I’ve provided a background graphic for you called road@2x.jpg, so we need to add that to our Xcode project so that iOS knows what to show. It’s inside the Assets &gt; Project1 folder that came with this book.</p>
+<p><strong>Tip:</strong> The @2x part of image filenames is a little bit of magic. Different iOS devices have different resolutions, but mostly developers don’t want to think about that when writing code. So, we’ll ask Xcode to load road.jpg and it will automatically look for that image at the correct resolution for the current device. iPads use retina resolution, which is 2x regular resolution, so when we ask for road.jpg iOS will actually load road@2x.jpg.</p>
+<p>On the left of the Xcode window is the project navigator, where you add files. If you don’t see it already, press Cmd+1 to activate it. One of those files is called Assets.xcassets, which is an <em>asset catalog</em> – a place where we store all our images. Please select that now, and you’ll see it already has one empty asset called “AppIcon”.</p>
+<p>I’d like you to add road@2x.jpg to that asset catalog – select it in Finder, then drag it below “AppIcon”.</p>
+<p>You’ll notice that the muddy background is quite plain – boring, in fact! – but that’s OK: it’s only there to provide a flat backdrop for us to render over, and we’ll make it look much better soon enough!</p>
+<p>Now that road@2x.jpg is part of our project we can start using it in our game. In SpriteKit, each part of your game is called a scene, and we have one ready to use already called GameScene.swift. Please select that using the project navigator, and you’ll see it opened for editing.</p>
+<p>There are four methods in there already, which are pieces of functionality that get called by SpriteKit when something interesting happens. They are:</p>
+<ul>
+<li>The <code class="language-swift">didMove(to:)</code> method, which is called when your game scene is ready to run.</li>
+<li>The <code class="language-swift">touchesBegan()</code> method, which is called when the user touches the screen.</li>
+<li>The <code class="language-swift">touchesEnded()</code> method, which is called when the user stops touching the screen.</li>
+<li>The <code class="language-swift">update()</code> method, which is called before each frame is rendered.</li>
+</ul>
+<p>Each of those methods has a comment inside, which is the green text that starts with <code class="language-swift">//</code>. These comments are ignored by Swift, but we use them to help explain to other programmers what’s going on.</p>
+<p>We want to set up our new background when the game scene is ready to run, so we need to put it into the <code class="language-swift">didMove(to:)</code> method. Add this code just below the comment inside that method:</p>
+<pre><code class="language-swift">let background = SKSpriteNode(imageNamed: "road.jpg")
+background.zPosition = -1
+addChild(background)</code></pre>
+<p>If you’ve put it in the right place, here’s how your code should look:</p>
+<pre><code class="language-swift">override func didMove(to view: SKView) {
+    // this method is called when your game scene is ready to run
+    let background = SKSpriteNode(imageNamed: "road.jpg")
+    background.zPosition = -1
+    addChild(background)
+}</code></pre>
+<p>Those three lines of code do three distinct things.</p>
+<p>The first line creates a new <code class="language-swift">SKSpriteNode</code>, which is SpriteKit’s way of drawing images on the screen. SpriteKit thinks about your scene in terms of <em>nodes</em>, which are a collection of objects that form a neat hierarchy. In this case we want a <em>sprite</em> node, which is a node that stores pictures, so we’re going to make it load from the road@2x.jpg picture we added earlier.</p>
+<p>Just creating a new sprite node isn’t enough, we need to show it too. That’s what the third line does: it adds the new sprite node as a child of our game scene, which causes it to be displayed.</p>
+<p>As for the second line, that’s a bit special: Z position lets us decide whether a sprite should be drawn on top of or below other sprites. Using higher numbered Z positions makes sprites draw on top of others, so using -1 means “draw behind others.” These numbers are all relative – we could have used -1000 if we wanted.</p>
+<p>That’s enough code for now, so press Cmd+R to ask Xcode to build and run your code in the simulator. Hopefully you have an iPad connected so Xcode can deploy the app directly there. If not, there is a virtual iPad called the simulator, but it’s extremely slow even when you’re using high-performance Macs – it’s <em>strongly</em> recommended that you use a real iPad.</p>
+<p>If everything has worked well you should see the iPad’s screen filled with a picture of some road – a good start!</p><ul><li><a href="1~0-2-0-x-x-x-x-x-x-x-x-x.html">Go to next chapter</a></li></ul>

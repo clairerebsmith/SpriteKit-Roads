@@ -1,0 +1,39 @@
+<h1>Controlling the submarine</h1>
+<p>In this game the player needs to press and hold to move up, because by default they will fall down to their doom.</p>
+<p>We can make the player fall by adding just two lines of code – SpriteKit does nearly all the work for us. This is because we’re going to be using <em>physics simulation</em>: we’ll configure a world out of shapes, give it some gravity, then ask SpriteKit to calculate how those shapes should interact realistically.</p>
+<p>First, we need to tell the physics world for our game scene that we want it to simulate gravity. There’s no gravity right now, so objects with simulated physics hang weightlessly in the air – not much fun for our game.</p>
+<p>Please open GameScene.swift and add this to its <code class="language-swift">didMove(to:)</code> method:</p>
+<pre><code class="language-swift">physicsWorld.gravity = CGVector(dx: 0, dy: -5)</code></pre>
+<p><code class="language-swift">CGVector</code> is a data type that lets us specify the direction and speed of movement, and that line of code equates to 5 meters per second downward – the “dx” and “dy” are short for “delta x” and “delta y”, or how much they differ from zero.</p>
+<p>The second line of code will give the player a physics body, which tells SpriteKit’s physics simulation what shape the player has. Now, you and I both know that the player is a submarine, but SpriteKit doesn’t.</p>
+<p>Many games use rectangular physics bodies because they are fast for collision detection – the process of figuring out when two simulated objects collide. In this game we’ll use <em>pixel-perfect collision detection</em>, which asks SpriteKit to look at our player’s image to figure out the shape of its physics body. </p>
+<p>All that is just one line of code thanks to SpriteKit’s <code class="language-swift">SKPhysicsBody</code> class. This lets you describe the physics body of an object using a texture and a size. For this game we’ll pass in the texture assigned to our player, which is the image data loaded from submarine@2x.png, as well as the size of that image data. </p>
+<p>There’s a catch here: we’re creating our <code class="language-swift">SKSpriteNode</code> from an image, so we know it always has a texture. However it’s possible to create them from colors, and sprite nodes created that way <em>don’t</em> have a texture. As a result, when creating the physics body for our player we need to force unwrap its <code class="language-swift">texture</code> property – we know it has a value, so this is safe.</p>
+<p>Add this code to the <code class="language-swift">didMove(to:)</code> method:</p>
+<pre><code class="language-swift">player.physicsBody = SKPhysicsBody(texture: player.texture!, size: player.texture!.size())</code></pre>
+<p>That creates a physics body for the player by using its texture and that texture’s size.</p>
+<p>If you run the app now you’ll see the player’s submarine
+drops off the screen. Trust me, that’s a good thing – it shows gravity is working as intended!</p>
+<p>The next step is to make the submarine move up when the player is touching the screen, or fall down otherwise.</p>
+<p>To make this work we’re going to start by adding a new property called <code class="language-swift">touchingScreen</code>, which we’ll set to true when the player starts touching the screen and false when they stop.</p>
+<p>First, add this property to the <code class="language-swift">GameScene</code> class:</p>
+<pre><code class="language-swift">var touchingScreen = false</code></pre>
+<p>Next we need to set that to true inside <code class="language-swift">touchesBegan()</code>, and false inside <code class="language-swift">touchesEnded()</code> – nothing tricky at all. Modify those methods to this:</p>
+<pre><code class="language-swift">override func touchesBegan(_ touches: Set&lt;UITouch&gt;, with event: UIEvent?) {
+    touchingScreen = true
+}
+
+override func touchesEnded(_ touches: Set&lt;UITouch&gt;, with event: UIEvent?) {
+    touchingScreen = false
+}</code></pre>
+<p>The only thing that takes a little thought is what to do when <code class="language-swift">touchingScreen</code> is true, and even then it isn’t hard at all.</p>
+<p>Right now our player’s submarine falls down because of gravity, which we set to be Y:-5. However, that’s an acceleration rather than a constant speed: if you drop something it starts falling slowly, but picks up speed as it accelerates. </p>
+<p>This total speed – how much a physics body is moving <em>right now</em> – is represented using the <code class="language-swift">velocity</code> property of its physics body. So, to make the player move up all we have to do is set that to a suitable high <em>positive</em> Y value when `touchingScreen is set to true.</p>
+<p>Our SpriteKit template already has an empty method that’s perfect for this, called <code class="language-swift">update()</code>. This gets called every time SpriteKit is going to draw the screen, so that’s about 60 times a second or more, depending on your device.</p>
+<p>Add this code to your <code class="language-swift">update()</code> method:</p>
+<pre><code class="language-swift">if touchingScreen {
+    player.physicsBody?.velocity = CGVector(dx: 0, dy: 300)
+}</code></pre>
+<p>Now, you might look at that and wonder why Y:300 is being used when we made gravity only Y:-5 – how come this is so much bigger?</p>
+<p>Well, remember that gravity is applied as an <em>acceleration</em>, which means initially the player falls at -5, then they’ll fall faster and faster until they reach some sort of terminal velocity. So, when you see the submarine falling quite quickly, by that point it probably already has a Y velocity of -300 or more.</p>
+<p>Try running the game now and you should find you have control over the submarine – it drops naturally if you do nothing, or glides upwards smoothly when you’re pressing the screen.</p><ul><li><a href="3~0-1-0-0-x-x-x-x-x-x-x.html">Go to next chapter</a></li></ul>

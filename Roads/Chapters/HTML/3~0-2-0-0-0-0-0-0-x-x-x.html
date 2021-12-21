@@ -1,0 +1,48 @@
+<h1>Scoring points by avoiding balloons</h1>
+<p>In this game we’re going to score points by avoiding balloons, but first we need two important things: a <code class="language-swift">score</code> property that tracks the player’s current score number, and a <code class="language-swift">scoreLabel</code> property that shows the score onscreen.</p>
+<p>This can be done with two new properties: one an integer starting at 0, and one an <code class="language-swift">SKLabelNode</code>, which is SpriteKit’s way of writing text to the screen. To make our code easier to follow, we’re going to implement this using a property observer: we’ll tell Swift that whenever the <code class="language-swift">score</code> integer changes it should also update <code class="language-swift">scoreLabel</code>.</p>
+<p>Add these two properties to <code class="language-swift">GameScene</code> now:</p>
+<pre><code class="language-swift">let scoreLabel = SKLabelNode(fontNamed: "Baskerville-Bold")
+
+var score = 0 {
+    didSet {
+        scoreLabel.text = "SCORE: \(score)"
+    }
+}</code></pre>
+<p>That creates the label node, but we still need to position it in our game scene and give it some initial text. Label nodes have white as their default color, but we’re going to change to a faded black color that adopts a small amount of the background tint.</p>
+<p>Add these four lines of code to the <code class="language-swift">didMove(to:)</code> method:</p>
+<pre><code class="language-swift">scoreLabel.fontColor = UIColor.black.withAlphaComponent(0.5)
+scoreLabel.position.y = 320
+addChild(scoreLabel)
+score = 0</code></pre>
+<p>That last line sets <code class="language-swift">score</code> to zero – that’s its default value, but setting it here will cause its <code class="language-swift">didSet</code> observer code to run, giving our label its initial text.</p>
+<p>Here’s where things get more interesting: we need to give the player one point for every balloon they pass. We’re actually going to be using physics for this too, and in total it takes maybe only ten or so lines of code as a result.</p>
+<p>Whenever <code class="language-swift">createObstacle()</code> is called to create a new balloon, we’re <em>also</em> going to create a red rectangle that’s the full height of the screen, and position it so that it sits at the right edge of the balloon and moves with them.</p>
+<p>The red color is only there so you can see what’s happening – in a real game you should use <code class="language-swift">UIColor.clear</code> so its not visible. However, the position <em>is</em> important: because the rectangle is placed at the right edge of each balloon, if the player collides with the rectangle it means they passed the balloon and deserve a point added to their score.</p>
+<p>Most of the code to this is old, but a few parts are new so I want to walk through them just quickly.</p>
+<p>First, you can create an <code class="language-swift">SKSpriteNode</code> with a particular color and size like this:</p>
+<pre><code class="language-swift">let collision = SKSpriteNode(color: .red, size: CGSize(width: 20, height: 768))</code></pre>
+<p>It won’t have anything in its <code class="language-swift">texture</code> property, though, so when giving it a physics body we’re going to give it rectangular physics instead, like this:</p>
+<pre><code class="language-swift">collision.physicsBody = SKPhysicsBody(rectangleOf: collision.size)</code></pre>
+<p>Finally, we’re going to position the collision rectangle at the right edge of each balloon as it’s created, using this:</p>
+<pre><code class="language-swift">collision.position.x = obstacle.frame.maxX</code></pre>
+<p>Note: although we’ll be giving the collision rectangle a name so we can track its collisions properly, we’ll be setting its <code class="language-swift">isDynamic</code> property to false so that it isn’t subject to gravity.</p>
+<p>Add this code to the end of <code class="language-swift">createObstacle()</code>:</p>
+<pre><code class="language-swift">let collision = SKSpriteNode(color: .red, size: CGSize(width: 20, height: 768))
+collision.physicsBody = SKPhysicsBody(rectangleOf: collision.size)
+collision.physicsBody?.contactTestBitMask = 1
+collision.physicsBody?.isDynamic = false
+
+collision.position.x = obstacle.frame.maxX
+collision.name = "score"
+addChild(collision)
+collision.run(action)</code></pre>
+<p>Now that the score rectangle is working, we just need to update the <code class="language-swift">playerHit()</code> method to detect score collisions. It already has an <code class="language-swift">if</code> block in there that catches obstacle collisions, so please add an <code class="language-swift">else if</code> there like this:</p>
+<pre><code class="language-swift">if node.name == "obstacle" {
+    // existing code here
+} else if node.name == "score" {
+    node.removeFromParent()
+    score += 1
+}</code></pre>
+<p>Try the game now and you’ll see it’s looking great – you die if you crash into balloons or the ground, but if you hit the red score rectangles you’ll earn a point.</p>
+<p>Once you’ve checked that it works, change the scoring rectangle to have the color <code class="language-swift">.clear</code> so they are invisible.</p><ul><li><a href="3~0-2-0-0-0-0-0-0-0-x-x.html">Go to next chapter</a></li></ul>

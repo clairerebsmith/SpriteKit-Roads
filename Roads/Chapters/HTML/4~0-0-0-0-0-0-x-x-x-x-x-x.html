@@ -1,0 +1,43 @@
+<h1>Creating a smart bomb</h1>
+<p>In this game we’re going to randomly give the player a bonus item that destroys all nearby shapes regardless of their color. This smart bomb will appear once for roughly every 25 shapes the player destroys, which should add some variety to the game.</p>
+<p>First we need to modify the <code class="language-swift">createItem()</code> method so that it will only consider creating special items when they are being created offscreen. This allows us to call <code class="language-swift">createItem()</code> without it possibly creating special items, which is ideal for creating the initial items in the grid.</p>
+<p>If <code class="language-swift">createItem()</code> is called with <code class="language-swift">startOffScreen</code> set to true, we’ll generate a random number between 0 and 49 (inclusive), and if that’s equal to 0 then we’ll generate a smart bomb item for the player to select.</p>
+<p>Find these two lines:</p>
+<pre><code class="language-swift">let itemImages = ["shape-circle", "shape-diamond", "shape-heart", "shape-pentagon", "shape-square", "shape-star", "shape-triangle"]
+let itemImage = itemImages.randomElement()!</code></pre>
+<p>Now replace them with this:</p>
+<pre><code class="language-swift">let itemImage: String
+
+if startOffScreen &amp;&amp; Int.random(in: 0...24) == 0 {
+    itemImage = "bomb"
+} else {
+    let itemImages = ["shape-circle", "shape-diamond", "shape-heart", "shape-pentagon", "shape-square", "shape-star", "shape-triangle"]
+    itemImage = itemImages.randomElement()!
+}</code></pre>
+<p>The “bomb” image is new, so please find bomb@2x.png in my assets for this project and copy it into your asset catalog.</p>
+<p>That <em>creates</em> the smart bomb power up, but we still need to adjust <code class="language-swift">touchesBegan()</code> to <em>handle</em> it. First, let’s create a method stub we can call – add this directly after the <code class="language-swift">moveDown()</code> method:</p>
+<pre><code class="language-swift">func triggerSpecialItem(_ item: Item) {
+}</code></pre>
+<p>We can call that directly from <code class="language-swift">touchesBegan()</code> by adding a little code directly before the <code class="language-swift">match(item:)</code> call in that method:</p>
+<pre><code class="language-swift">if tappedItem.name == "bomb" {
+    triggerSpecialItem(tappedItem)
+}</code></pre>
+<p>The smart bomb power up will cause multiple chain reactions: it will act as if the user tapped the items above, below, left, and right of the bomb at the same time, potentially destroying many shapes at the same time.</p>
+<p>You might not believe me at first, but to make the smart bomb takes just one line of code. In fact, it takes <em>less</em> than one line of code, because all we need to do is modify an existing line.</p>
+<p>The line we need to change is this one, inside <code class="language-swift">match(item:)</code>:</p>
+<pre><code class="language-swift">if check.name == original.name {</code></pre>
+<p>That restricts our chain reaction so that only identical shapes get destroyed when matching adjacent items in the grid. Because our smart bomb will destroy <em>everything</em> around it – including other smart bombs – we need to modify that check so that it evaluates as true if the names are the same or if the original is named “bomb”.</p>
+<p>Modify the line to this:</p>
+<pre><code class="language-swift">if check.name == original.name || original.name == "bomb" {</code></pre>
+<p>Remarkably enough, that’s our smart bomb code done!</p>
+<p>That was easy, right? So if you want – you can choose, of course! – we could push this a little further by making the screen flash white when the explosion happens to make it look more impressive.</p>
+<p>Don’t worry, this only takes a few lines of code. First, we’ll create a new white sprite node that fills our screen, which is just one line of code because you can create sprite nodes from a color and a size. Once we have that, we’ll set its Z position to 1 so that it sits over all the shapes, then add it to the scene.</p>
+<p>This is why we added <code class="language-swift">triggerSpecialItem()</code> earlier - it’s the perfect place to make a bomb flash effect. Put this code in there now:</p>
+<pre><code class="language-swift">let flash = SKSpriteNode(color: .white, size: frame.size)
+flash.zPosition = 1
+addChild(flash)</code></pre>
+<p>To make that disappear, we’re going to run a new <code class="language-swift">SKAction</code> on it called <code class="language-swift">fadeOut(withDuration:)</code>, then call <code class="language-swift">removeFromParent()</code> when it completes. Add these two below the others:</p>
+<pre><code class="language-swift">flash.run(SKAction.fadeOut(withDuration: 0.2)) {
+    flash.removeFromParent()
+}</code></pre>
+<p>If you give it a try now you’ll see the screen flash makes the whole explosion effect more interesting – keep it if you like it, or ditch it if not. It’s your choice!</p><ul><li><a href="4~0-0-0-0-0-0-0-x-x-x-x-x.html">Go to next chapter</a></li></ul>

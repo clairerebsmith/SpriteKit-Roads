@@ -1,0 +1,37 @@
+<h1>Making the player move</h1>
+<p>All iPads come with both an accelerometer and a gyroscope built in, which allows us to detect how much devices are being tilted in any direction. In this game, that’s a fun and easy way to control the player’s motorbike without them having to cover part of the screen with their hand, and it only takes a few lines of code.</p>
+<p>All iOS motion sensitivity is handled using a framework called Core Motion. Frameworks are collections of functionality, just like SpriteKit, and this one is dedicated to reading the accelerometer and gyroscope.</p>
+<p>Core Motion isn’t available unless we ask for it, and that’s done using the <code class="language-swift">import</code> command – it asks Swift to enable functionality from any framework we want. In our case we want to enable Core Motion, so you need to scroll to the top of GameScene.swift and add this line of code below the existing imports:</p>
+<pre><code class="language-swift">import CoreMotion</code></pre>
+<p>Now that Core Motion is ready to be used, we need to add a new property to store an instance of a <code class="language-swift">CMMotionManager</code>. These are objects specifically designed to monitor for accelerometer and gyroscope changes, and report back to us when something interesting happened.</p>
+<p>To make that happen we first need to create a property to store the motion manager, so please add this below the existing <code class="language-swift">player</code> property before the <code class="language-swift">didMove(to:)</code> method:</p>
+<pre><code class="language-swift">let motionManager = CMMotionManager()</code></pre>
+<p>Second, we need to instruct the motion manager to start collecting accelerometer data so that we can read it later on. This is done by calling the <code class="language-swift">startAccelerometerUpdates()</code> method on our motion manager, so please add this line of code to the end of the <code class="language-swift">didMove(to:)</code> method:</p>
+<pre><code class="language-swift">motionManager.startAccelerometerUpdates()</code></pre>
+<p>Remember, properties are created outside methods, but <em>manipulating</em> those properties is done <em>inside</em> methods.</p>
+<p>The final step to adding tilt controls is to read the accelerometer data at periodic intervals, then use it to modify the player’s position.</p>
+<p>Before we can write this code you need to learn a few things:</p>
+<ol>
+<li>Reading accelerometer data will fail if no data is available. In Swift this means we need to use <code class="language-swift">if let</code> when reading it, so that the rest of our code only runs if the data is available.</li>
+<li>Accelerometer data has three axes, X, Y, and Z, but they don’t mean what you think. You see, our game runs in landscape mode – the device is rotated – which means the Y axis should be used to move the player left and right, and the X axes to move them up and down.</li>
+<li>Accelerometer data is sent to us as Gs, where 1G is equal to the gravitational strength of the Earth. To make tilting more sensitive – i.e., to make the player move faster – we need to multiply these numbers to make them bigger. I’m going to use 100, but you’re welcome to experiment.</li>
+</ol>
+<p>So, that’s how the code needs to work. The question is, where should it go?</p>
+<p>It turns out that SpriteKit already has the perfect place in its <code class="language-swift">update()</code> method. This gets called before each frame is rendered, which is a fancy way of saying that it gets called just before our scene gets drawn to the iPad’s screen. </p>
+<p>Games work best when they run at 60 frames per second or more, which means the <code class="language-swift">update()</code> method will get called at least 60 times per second – it’s ideal for what we need.</p>
+<p>Right now there’s only a comment in that method, so please add this code to it now:</p>
+<pre><code class="language-swift">if let accelerometerData = motionManager.accelerometerData {
+    let changeX = CGFloat(accelerometerData.acceleration.y) * 100
+    let changeY = CGFloat(accelerometerData.acceleration.x) * 100
+    player.position.x -= changeX
+    player.position.y += changeY
+}</code></pre>
+<p>Notice how we need to <em>subtract</em> from the X position and <em>add</em> to the Y position, again because our device is rotated so the axes aren’t what you would normally expect. </p>
+<p>Try running that code now, and see if you think my 100 multiplier is fast enough for you. Ideally we want players to be able to control their motorbike without having to move too far!</p>
+<p>It’s time for another choice from you: now that the player can move around the screen, it’s time for us to add some sort of enemy for them to avoid! The question is, what should they avoid?</p>
+<h2>Please make your choice:</h2>
+<ul>
+<li><a href="1~0-2-0-0-0-0-x-x-x-x-x-x.html">Cars</a></li>
+<li><a href="1~0-2-0-0-0-1-x-x-x-x-x-x.html">Barrels</a></li>
+<li><a href="1~0-2-0-0-0-2-x-x-x-x-x-x.html">Walls</a></li>
+</ul>

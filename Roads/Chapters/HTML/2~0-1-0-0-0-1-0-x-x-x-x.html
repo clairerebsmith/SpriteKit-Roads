@@ -1,0 +1,39 @@
+<h1>Keeping score</h1>
+<p>Now that we’re tracking right and wrong answers, it’s time to show a score so the user can see how they are doing. This takes three steps:</p>
+<ol>
+<li>Adding a <code class="language-swift">score</code> integer that stores the actual score number.</li>
+<li>Adding a <code class="language-swift">scoreLabel</code> SpriteKit node that displays the score number.</li>
+<li>Modifying <code class="language-swift">correctAnswer()</code> and <code class="language-swift">wrongAnswer()</code> so they change the score appropriately.</li>
+</ol>
+<p>We’re going to tackle them in a slightly different sequence so that it’s easier to follow, starting with step 2: creating a SpriteKit node that shows the score. </p>
+<p>We’ve used <code class="language-swift">SKSpriteNode</code> for displaying the background and each of our lights, but SpriteKit has a dedicated node type for showing text called <code class="language-swift">SKLabelNode</code>. You can give a label node any font, size, and color you like, and it will draw your text on the screen.</p>
+<p>First, create a property for it next to <code class="language-swift">level</code>:</p>
+<pre><code class="language-swift">let scoreLabel = SKLabelNode(fontNamed: "Optima-ExtraBlack")</code></pre>
+<p>Second, we need to position the label so that it’s in the top-left corner of the screen. By default, labels <em>center</em> their text, but we’re going to make this one align to the left so that it stays in its top-left position even when the score changes.</p>
+<p>Add these two lines of code to the <code class="language-swift">didMove(to:)</code> method:</p>
+<pre><code class="language-swift">scoreLabel.position = CGPoint(x: -480, y: 330)
+scoreLabel.horizontalAlignmentMode = .left</code></pre>
+<p>Finally, we need to add the label to the scene. Normally we would use <code class="language-swift">addChild()</code> for this, but not here. You see, way down in the <code class="language-swift">createLevel()</code> method we have this line of code:</p>
+<pre><code class="language-swift">let items = children.filter { $0.name != "background" }</code></pre>
+<p>That retrieves all nodes in the game, removes the one called “background”, and assumes the rest to be items in our grid of lights. If we add the score label directly to the scene, we either need to call it “background” (a hack, but it works!), or our game will crash.</p>
+<p>Instead we’re going to add the score label to the background node, and use Z position to draw it higher. This works because the <code class="language-swift">children</code> array used above only contains nodes the game scene <em>directly</em> owns, rather than nodes inside other nodes.</p>
+<p>So, please add these two lines to <code class="language-swift">didMove(to:)</code> now:</p>
+<pre><code class="language-swift">scoreLabel.zPosition = 1
+background.addChild(scoreLabel)</code></pre>
+<p>That’s our first task complete, but don’t run the game just yet because we haven’t given the label any text!</p>
+<p>Now that we have a place to show the player’s score, let’s create a <code class="language-swift">score</code> integer property that sits behind it. We’re going to use a property observer so that whenever <code class="language-swift">score</code> changes it automatically updates <code class="language-swift">scoreLabel</code>. Please add this property now:</p>
+<pre><code class="language-swift">var score = 0 {
+    didSet {
+        scoreLabel.text = "SCORE: \(score)"
+    }
+}</code></pre>
+<p>With that in place we can make the score label have some initial text by adding one more line near the end of <code class="language-swift">didMove(to:)</code>:</p>
+<pre><code class="language-swift">score = 0</code></pre>
+<p>Even though 0 is the initial value of <code class="language-swift">score</code>, it will still trigger the property observer.</p>
+<p>The final task is to modify <code class="language-swift">score</code> inside <code class="language-swift">correctAnswer()</code> and <code class="language-swift">wrongAnswer()</code>, both of which will cause the score label to update thanks to our property observer.</p>
+<p>Put this at the start of <code class="language-swift">correctAnswer()</code>:</p>
+<pre><code class="language-swift">score += 1</code></pre>
+<p>And put this at the start of <code class="language-swift">wrongAnswer()</code>:</p>
+<pre><code class="language-swift">score -= 1</code></pre>
+<p>Of course, there’s no reason why you should use for those values – you can use 10, 1000, or any other value you like. If you’re feeling particularly evil, you could subtract 3 points for getting something wrong, but only add one 1 point when they get something right!</p>
+<p>Run the game now and you should see we have scoring working – nice!</p><ul><li><a href="2~0-1-0-0-0-1-0-0-x-x-x.html">Go to next chapter</a></li></ul>

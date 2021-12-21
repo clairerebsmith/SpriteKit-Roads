@@ -1,0 +1,17 @@
+<h1>Adding sound effects</h1>
+<p>No game is complete without some sound and music, but SpriteKit makes both of these easy to add.</p>
+<p>We’ll start with background music first, because that only takes two lines of code to add.</p>
+<p>In my assets for this project I’ve provided three tracks for you to choose from: alien-restaurant.mp3, phantom-from-space.mp3, and space-1990-b.mp3. Try listening to all three and deciding which one you like most, then copying it into your Xcode project. Obviously I don’t know which you chose, so when you see “your-song” in the code below please use your filename instead!</p>
+<p>All three of these tracks were created by Kevin MacLeod of <a href="https://incompetech.com/">https://incompetech.com/</a> and released under the Creative Commons: By Attribution 3.0 License (<a href="http://creativecommons.org/licenses/by/3.0/">http://creativecommons.org/licenses/by/3.0/</a>). In short, that means you’re free to use his music in your games as long as you give him credit somewhere.</p>
+<p>Now that your chosen song is in Xcode, we can use it in our game by adding these two lines of code to the <code class="language-swift">didMove(to:)</code> method:</p>
+<pre><code class="language-swift">let music = SKAudioNode(fileNamed: "your-song")
+addChild(music)</code></pre>
+<p>The magic of <code class="language-swift">SKAudioNode</code> is that it automatically loops when its music ends, so our background music will play continuously.</p>
+<p>Now for sound effects: we want each alien zap to be accompanied by a short sound effect. This doesn’t need to be looped, so instead of using <code class="language-swift">SKAudioNode</code> we’ll use a new <code class="language-swift">SKAction</code> instead: <code class="language-swift">playSoundFileNamed()</code>.</p>
+<p>Look in my assets for this project for zap.wav, and drag it into your Xcode project navigator. Now add this line of code to <code class="language-swift">touchesBegan()</code>, just below the call to <code class="language-swift">currentMatches.removeAll()</code>:</p>
+<pre><code class="language-swift">run(SKAction.playSoundFileNamed("zap", waitForCompletion: false))</code></pre>
+<p>That creates the action and runs it immediately, causing the sound to play immediately. (You don’t need the “.wav” file extension – SpriteKit will figure it out!)</p>
+<p>Of course, if we’re going to play a sound each time we zap an alien, we should also play something special when then the player activates a special item – our smart bomb.</p>
+<p>Copy smart-bomb.wav from my project assets into your Xcode project navigator, then add this line of code to the start of <code class="language-swift">triggerSpecialItem()</code>:</p>
+<pre><code class="language-swift">run(SKAction.playSoundFileNamed("smart-bomb", waitForCompletion: false))</code></pre>
+<p>That’s all our sound and music done, so give the game a try – I think it really helps bring the whole thing together!</p><ul><li><a href="4~0-2-0-0-0-0-0-0-2-0-0-x.html">Go to next chapter</a></li></ul>

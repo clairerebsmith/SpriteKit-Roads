@@ -1,0 +1,28 @@
+<h1>Adding particle effects</h1>
+<p>Making the player disappear when they get destroyed is dull, and SpriteKit can do better – much, <em>much</em> better. We’re going to create an explosion effect using particles, which are tiny moving textures that are often used to simulate fire, smoke, rain, bubbles, and more.</p>
+<p>Go to the File menu and choose New &gt; File. From the list that appears, select iOS &gt; SpriteKit Particle File, then click Next. You’ll be asked to select a template, so please select Fire then click Next. Finally, name the file PlayerExplosion.sks and click Create.</p>
+<p>Xcode will immediate open the new particle system in its visual particle editor, which is a great way to toy with settings and see immediately what response they give you. Initially you’ll see a fire that doesn’t go out, but we need to make a few changes for this game.</p>
+<p>The fire is pretty close to what we need for this game, but we do need to make two small changes:</p>
+<ul>
+<li>Change Emitter Birthrate to 1000 and Maximum to 250. This causes the particle system to emit fewer particles, but do so extremely quickly.</li>
+<li>Change Angle Range to be 360 so that particles get emitted in all directions equally.</li>
+</ul>
+<p>That’s our particle file done, so head back to GameScene.swift so that we can add it to the <code class="language-swift">playerHit()</code> method. Right now the method’s content looks like this:</p>
+<pre><code class="language-swift">if node.name == "obstacle" {      
+    player.removeFromParent()
+}</code></pre>
+<p>We’re going to modify that to create a new node, an <code class="language-swift">SKEmitterNode</code>, before the call to <code class="language-swift">removeFromParent()</code>. This matters because we’re going to be positioning our particle system at the player’s position, which won’t work if we remove them from the game first.</p>
+<p>Now that we designed our particle effect inside Xcode’s visual editor, we can load that file and show it immediately just by creating a new <code class="language-swift">SKEmitterNode</code> from our filename – SpriteKit does everything else.</p>
+<p>Add this code to the <code class="language-swift">playerHit()</code> method, directly before the call to <code class="language-swift">player.removeFromParent()</code>:</p>
+<pre><code class="language-swift">if let explosion = SKEmitterNode(fileNamed: "PlayerExplosion") {
+    explosion.position = player.position
+    addChild(explosion)
+}</code></pre>
+<p>Remarkably enough, that’s enough to bring the particles to life  – give them a try now and you should see the player’s balloon disappear in a shower of particles. Much better!</p>
+<p>Now it’s time for another choice: how should the play score points?</p>
+<h2>Please make your choice:</h2>
+<ul>
+<li><a href="3~0-2-0-0-0-0-0-0-x-x-x.html">By avoiding balloons</a></li>
+<li><a href="3~0-2-0-0-0-0-0-1-x-x-x.html">By collecting coins</a></li>
+<li><a href="3~0-2-0-0-0-0-0-2-x-x-x.html">Just by staying alive</a></li>
+</ul>

@@ -1,0 +1,30 @@
+<h1>Ending the game</h1>
+<p>Now is a good time to add something important to our game: a slightly more interesting ending. Right now the player simply disappears whenever they hit mines, but then nothing else happens – it’s a bit dull, really.</p>
+<p>To fix that we’re going to do three things: </p>
+<ol>
+<li>Make the music stop.</li>
+<li>Show a “Game Over” message.</li>
+<li>Make an explosion where the player was.</li>
+</ol>
+<p>Believe it or not, all three of those are straightforward thanks to SpriteKit.</p>
+<p>Let’s tackle them in order. Making the music stop is as simple as calling <code class="language-swift">removeFromParent()</code> on it, so add this line of code to the <code class="language-swift">playerHit()</code> method, directly below where <code class="language-swift">player.removeFromParent()</code> is called:</p>
+<pre><code class="language-swift">music.removeFromParent()</code></pre>
+<p>Showing a game over message is just a matter of adding a new sprite node to the scene at the right time. I’ve provided three game over graphics for you in the assets for this project, so please choose one of them now and add it to your asset catalog. </p>
+<p>For the sake of simplicity, I’m going to assume you chose gameOver-1@2x.png, so you would need to add this code directly beneath the previous line:</p>
+<pre><code class="language-swift">let gameOver = SKSpriteNode(imageNamed: "gameOver-1")
+gameOver.zPosition = 10
+addChild(gameOver)</code></pre>
+<p>I deliberately gave it a high Z position to make sure “Game Over” appears over absolutely everything else.</p>
+<p>That’s two tasks down already, so let’s focus on the third one: adding an explosion over the player. This is another great job for particle systems, and in fact Xcode comes with a template that takes only a little tweaking.</p>
+<p>Go to the File menu and choose New &gt; File. Select iOS for the platform, then SpriteKit Particle File and click next. When you’re asked which template you want to use, please select “Fire”, then click Next. Finally, name it “Explosion.sks” then click Create to open it in the particle editor.</p>
+<p>To make this particle look more or less correct, just change Angle Range to 360 so that particles are fired in all directions, then change Emitter Maximum to 200 so that the particle system stops firing once 200 have been emitted.</p>
+<p>Now, you could have an interesting philosophical discussion about how explosions should look underwater, but, hey – we’re hardly focusing on realism here, and you’re welcome to experiment to your heart’s content!</p>
+<p>Now that we have Explosion.sks in our project, we need to create an <code class="language-swift">SKEmitterNode</code> using it when the player’s submarine gets destroyed.</p>
+<p>You already saw how to create <code class="language-swift">SKEmitterNode</code> instances back when we used one in the <code class="language-swift">didMove(to:)</code> method. The code this time is almost the same, except now we’re giving it a Z position of 3 so that it’s over everything except “Game Over”, and we’re also giving it the player’s position so it appears wherever they are on the screen.</p>
+<p>This might sound obvious, but if we try to read the player’s position after we’ve removed them from the game scene, things won’t work well. So, please add this code to the <code class="language-swift">playerHit()</code> method <em>before</em> the call to <code class="language-swift">player.removeFromParent()</code>:</p>
+<pre><code class="language-swift">if let particles = SKEmitterNode(fileNamed: "Explosion.sks") {
+    particles.position = player.position
+    particles.zPosition = 3
+    addChild(particles)
+}</code></pre>
+<p>Go ahead and run the game now and you should see the ending is a little more dramatic - we’re almost done!</p><ul><li><a href="1~0-1-0-0-0-2-0-0-0-0-0-x.html">Go to next chapter</a></li></ul>

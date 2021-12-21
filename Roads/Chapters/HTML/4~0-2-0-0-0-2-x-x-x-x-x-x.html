@@ -1,0 +1,57 @@
+<h1>Allowing free selection</h1>
+<p>In this game we’re going to randomly give the player a bonus item that allows free alien selection 10 times. This free selector will appear once for roughly every 25 aliens the player destroys, which should add some variety to the game.</p>
+<p>First we need to modify the <code class="language-swift">createItem()</code> method so that it will only consider creating special items when they are being created offscreen. This allows us to call <code class="language-swift">createItem()</code> without it possibly creating special items, which is ideal for creating the initial items in the grid.</p>
+<p>If <code class="language-swift">createItem()</code> is called with <code class="language-swift">startOffScreen</code> set to true, we’ll generate a random number between 0 and 49 (inclusive), and if that’s equal to 0 then we’ll generate a free selector item for the player to select.</p>
+<p>Find these two lines:</p>
+<pre><code class="language-swift">let itemImages = ["alien-blue", "alien-gray", "alien-green", "alien-pink", "alien-purple", "alien-yellow"]
+let itemImage = itemImages.randomElement()!</code></pre>
+<p>Now replace them with this:</p>
+<pre><code class="language-swift">let itemImage: String
+
+if startOffScreen &amp;&amp; Int.random(in: 0...24) == 0 {
+    itemImage = "multi"
+} else {
+    let itemImages = ["alien-blue", "alien-gray", "alien-green", "alien-pink", "alien-purple", "alien-yellow"]
+    itemImage = itemImages.randomElement()!
+}</code></pre>
+<p>The “multi” image is new, so please find multi@2x.png in my assets for this project and copy it into your asset catalog.</p>
+<p>That <em>creates</em> the free selector power up, but we still need to adjust <code class="language-swift">touchesBegan()</code> to <em>handle</em> it. First, let’s create a method stub we can call – add this directly after the <code class="language-swift">moveDown()</code> method:</p>
+<pre><code class="language-swift">func triggerSpecialItem(_ item: Item) {
+}</code></pre>
+<p>We can call that directly from <code class="language-swift">touchesBegan()</code> by adding a little code directly before the <code class="language-swift">match(item:)</code> call in that method:</p>
+<pre><code class="language-swift">if tappedItem.name == "multi" {
+    triggerSpecialItem(tappedItem)
+}</code></pre>
+<p>At the start of this project I said we would penalize players if they selected only 1 item so they wouldn’t be able to tap the screen wildly.</p>
+<p>Well, with this special item that rule changes: when they activate the free selector they can tap any 10 single items without penalty, which allows them to prepare some epic combos. We haven’t written the penalizing code yet, but we can still write the code to let single selection work later.</p>
+<p>First, find multi-background@2x.png in my assets for this project, and drag it into your asset catalog – that provides a rainbow background to show the user they can tap whatever they want. We put this behind the alien grid while the power is active so it’s obvious to the user.</p>
+<p>Next, add this property:</p>
+<pre><code class="language-swift">var freeSelectionCount = 0</code></pre>
+<p>That will track how many items the user can select without penalty – if it’s less than or equal to 0 they’ll be penalized as normal.</p>
+<p>There are only two things we need to do in order to fill in the <code class="language-swift">triggerSpecialItem()</code> method: set <code class="language-swift">freeSelectionCount</code> to 10 so the player has free moves, then display the “multi-background” image so users know the power up is active. We’ll place the image at Z position -1, which is in front of the background but behind the aliens. Put this into <code class="language-swift">triggerSpecialItem()</code> now:</p>
+<pre><code class="language-swift">freeSelectionCount = 10
+
+let multiBackground = SKSpriteNode(imageNamed: "multi-background")
+multiBackground.zPosition = -1
+multiBackground.name = "multi-background"
+addChild(multiBackground)</code></pre>
+<p>That works, but with a small change we can make it more fun: we’ll make an <code class="language-swift">SKAction</code> to rotate the rainbow, then ask <code class="language-swift">SKAction</code> to make it loop forever using its <code class="language-swift">repeatForever</code> action.</p>
+<p>Put this at the end of <code class="language-swift">triggerSpecialItem()</code>:</p>
+<pre><code class="language-swift">let rotate = SKAction.rotate(byAngle: -.pi, duration: 2)
+let forever = SKAction.repeatForever(rotate)
+multiBackground.run(forever)</code></pre>
+<p>In case you were wondering, <code class="language-swift">.pi</code> is equal to 180 degrees, so we’re rotating the rainbow 180 degrees every two seconds.</p>
+<p>The final step is to make the rainbow background disappear when <code class="language-swift">freeSelectionCount</code> reaches 0. We’ll subtract 1 every time they tap an alien, and if that hits 0 it’s time to remove the rainbow. We can do that by using <code class="language-swift">filter()</code> on the children of our game scene to look for the name “multi-background”, then removing whatever we find.</p>
+<p>This approach means that <code class="language-swift">freeSelectionCount</code> will keep going down as they tap aliens – well below 0 – but that’s OK, and actually helps because it means our <code class="language-swift">filter()</code> call will happen only when it is exactly 0.</p>
+<p>Put this into the <code class="language-swift">touchesBegan()</code> method, directly before the <code class="language-swift">if tappedItem.name == "multi" {</code> line:</p>
+<pre><code class="language-swift">freeSelectionCount -= 1
+
+if freeSelectionCount == 0 {
+    // find any multi-background images
+    let matches = children.filter { $0.name == "multi-background" }
+    for multiBackground in matches {
+        multiBackground.removeFromParent()
+    }
+}</code></pre>
+<p>The loop is important because there may be more than one rainbow background visible, so we need to remove them all.</p>
+<p>That’s all our work done – press Cmd+R to try it now!</p><ul><li><a href="4~0-2-0-0-0-2-0-x-x-x-x-x.html">Go to next chapter</a></li></ul>

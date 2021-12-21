@@ -1,0 +1,70 @@
+<h1>Ending the game</h1>
+<p>We’re going to give the player ten seconds to complete each level, which takes a number of steps. First, let’s set up three new properties:</p>
+<ol>
+<li>A <code class="language-swift">startTime</code> variable that tracks when the player started the game.</li>
+<li>A <code class="language-swift">timeLabel</code> label node that tells the user how much time they have remaining.</li>
+<li>An <code class="language-swift">isGameRunning</code> property that is set to true while the game is active.</li>
+</ol>
+<p>Add these three next to the <code class="language-swift">scoreLabel</code> we created earlier:</p>
+<pre><code class="language-swift">var startTime = 0.0
+var timeLabel = SKLabelNode(fontNamed: "Optima-ExtraBlack")
+var isGameRunning = true</code></pre>
+<p>The label node needs the same extra code in <code class="language-swift">didMove(to:)</code> that we wrote for the score label, so please add this there:</p>
+<pre><code class="language-swift">timeLabel.position = CGPoint(x: 480, y: 330)
+timeLabel.horizontalAlignmentMode = .right
+timeLabel.zPosition = 1
+background.addChild(timeLabel)</code></pre>
+<p>Notice how I’ve made the time label use a <em>right</em> horizontal alignment, so it sits in the top-right corner of the game scene.</p>
+<p>Next we need to make sure <code class="language-swift">touchesBegan()</code> doesn’t do anything if the <code class="language-swift">isGameRunning</code> property is set to false, which will stop the player from continuing the game when it’s stopped. Put this right at the start of the <code class="language-swift">touchesBegan()</code> method:</p>
+<pre><code class="language-swift">guard isGameRunning else { return }</code></pre>
+<p>Now for the important part: our SpriteKit template has an <code class="language-swift">update()</code> method, which gets called every time SpriteKit is ready to draw another frame to the screen. It’s our job to use this to make any manual adjustments to our game that we need, and in this case we’ll use it to draw the current time.</p>
+<p>This takes quite a bit of work, so let me try to break it down into small chunks. First, the easy part: if the game is running we’re going to do some work to show the remaining time on the screen; otherwise, we’ll hide the time label.</p>
+<p>Change your <code class="language-swift">update()</code> method to this:</p>
+<pre><code class="language-swift">override func update(_ currentTime: TimeInterval) {
+    if isGameRunning {
+        // more work to do
+    } else {
+        timeLabel.alpha = 0
+    }
+}</code></pre>
+<p>As you can see, the <code class="language-swift">update()</code> method has a <code class="language-swift">currentTime</code> parameter, telling us how many seconds we are into the game. This <em>isn’t</em> zero when the game starts, so when <code class="language-swift">update()</code> is called the first time we need to use that initial value to set our <code class="language-swift">startTime</code> property.</p>
+<p>Because <code class="language-swift">startTime</code> is initially 0, this means adding a simple check: if <code class="language-swift">startTime</code> is 0 it means the level is only just starting, so we’ll set it to the value of <code class="language-swift">currentTime</code>.</p>
+<p>Replace the <code class="language-swift">// more work to do</code> comment with this:</p>
+<pre><code class="language-swift">if startTime == 0 {
+    startTime = currentTime
+}
+
+// still more work to do</code></pre>
+<p>Now, the What we <em>need</em> is for that time to contain the time the current level started. With our lights flashing in an ever-growing sequence, we’re going to set <code class="language-swift">isGameRunning</code> to false inside <code class="language-swift">createLevel()</code>. then use GCD to set it to true and set <code class="language-swift">startTime</code> to 0.</p>
+<p>Remember, a <code class="language-swift">startTime</code> value of 0 will automatically get changed into the current time inside <code class="language-swift">update()</code>, which is exactly what we need. More on that in a moment – first, please add this to the end of <code class="language-swift">createLevel()</code>:</p>
+<pre><code class="language-swift">}
+
+isGameRunning = false
+DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+    self.isGameRunning = true
+    self.startTime = 0
+}</code></pre>
+<p>Now for the most important part of this problem: inside <code class="language-swift">update()</code> we need to replace the <code class="language-swift">// still more work to do</code> comment with code to calculate how much time is remaining and show it inside <code class="language-swift">timeLabel</code>.</p>
+<p>As a reminder, we’re being sent <code class="language-swift">currentTime</code> as a parameter inside <code class="language-swift">update()</code>, and we now have <code class="language-swift">startTime</code> set to the precise time the level started. So, to figure out how much time has passed since the level started we can subtract <code class="language-swift">startTime</code> from <code class="language-swift">currentTime</code>.</p>
+<p>So, start by replacing the <code class="language-swift">// still more work to do</code> comment with this:</p>
+<pre><code class="language-swift">let timePassed = currentTime - startTime</code></pre>
+<p>Next, we know the player has ten seconds to complete each level, so we can subtract 10 from <code class="language-swift">timePassed</code> to see how much time is remaining. Both these numbers are stored with extreme precision, for example 5.3121018 seconds remaining, however we just want to show whole numbers rounding up.</p>
+<p>Swift can help us get a better number by doing two things: the <code class="language-swift">ceil()</code> function will round our number up so that 5.3121018 will become 6.0, and creating an integer out of it will make it 6 rather than 6.0.</p>
+<p>So, add this line below the previous one:</p>
+<pre><code class="language-swift">let remainingTime = Int(ceil(10 - timePassed))</code></pre>
+<p>The next two lines are easy: now we know how many seconds remain, we can put that into <code class="language-swift">timeLabel</code> and make sure it’s showing. Put these two after the previous two:</p>
+<pre><code class="language-swift">timeLabel.text = "TIME: \(remainingTime)"
+timeLabel.alpha = 1</code></pre>
+<p>For the next step we just need to take some action if <code class="language-swift">remainingTime</code> ever becomes equal to or less than 0. If that happens it means the game is over, so we’ll set <code class="language-swift">isGameRunning</code> to false then show a game over sprite node.</p>
+<p>I’ve provided three different “Game Over” images in the assets for this project, so please choose one you like and add it to your asset catalog. Finally, put this code below the two lines you just added:</p>
+<pre><code class="language-swift">if remainingTime &lt;= 0 {
+    isGameRunning = false
+
+    let gameOver = SKSpriteNode(imageNamed: "gameOver1")
+    gameOver.zPosition = 100
+    addChild(gameOver)
+}</code></pre>
+<p>And for the final step, we just need to reset <code class="language-swift">startTime</code> every time they answer correctly. This can be done by putting it back to 0 inside <code class="language-swift">correctAnswer()</code>, and next time <code class="language-swift">update()</code> is called that will automatically reset the time back to the current time. </p>
+<p>Put this code at the start of the <code class="language-swift">correctAnswer()</code> method:</p>
+<pre><code class="language-swift">startTime = 0</code></pre>
+<p>Go ahead and run the game now and it should look finished! There are a couple of bugs, but that’s always to be expected – and fortunately they are easily fixed…</p><ul><li><a href="2~0-1-0-0-2-1-0-0-0-0-x.html">Go to next chapter</a></li></ul>

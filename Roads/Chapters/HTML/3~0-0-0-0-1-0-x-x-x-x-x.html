@@ -1,0 +1,56 @@
+<h1>Collision detection</h1>
+<p>Although our game <em>looks</em> more or less correct, it’s not much fun yet because the player’s plane can’t collide with either the ground or the  we’re creating.</p>
+<p>This takes several steps to implement, but none are complicated.</p>
+<p>First, we need to give the ground and the  physics bodies so they can collide with things. We already have the <code class="language-swift">needsPhysics</code> parameter come in to the <code class="language-swift">parallaxScroll()</code> method, so we just need to do something with it.</p>
+<p>More specifically, we’re going to add pixel-perfect collision detection to the ground just like we did with the player’s plane. However, we’re going to add three more things:</p>
+<ol>
+<li>We’ll set its <code class="language-swift">isDynamic</code> property to false. This stops gravity from affecting the ground, and without this the ground would just fall down.</li>
+<li>We’ll set its <code class="language-swift">contactTestBitMask</code> property to 1. This tells SpriteKit what collisions we want to be notified about – 1 is just an arbitrary number that we’ll use to represent the player.</li>
+<li>We’ll give it the name “obstacle” so we can track collisions properly.</li>
+</ol>
+<p>Go to the <code class="language-swift">parallaxScroll()</code> method and add this code directly below the call to <code class="language-swift">addChild()</code>:</p>
+<pre><code class="language-swift">if needsPhysics {
+    node.physicsBody = SKPhysicsBody(texture: node.texture!, size: node.texture!.size())
+    node.physicsBody?.isDynamic = false
+    node.physicsBody?.contactTestBitMask = 1
+    node.name = "obstacle"
+}</code></pre>
+<p>We need to make those same changes to the <code class="language-swift">createObstacle()</code> method, so that all the  we create also have non-dynamic physics bodies, a contact test bitmask of 1, and the name “obstacle”.</p>
+<p>Add this code inside <code class="language-swift">createObstacle()</code>, directly below the <code class="language-swift">addChild()</code> call:</p>
+<pre><code class="language-swift">obstacle.physicsBody = SKPhysicsBody(texture: obstacle.texture!, size: obstacle.texture!.size())
+obstacle.physicsBody?.isDynamic = false
+obstacle.physicsBody?.contactTestBitMask = 1
+obstacle.name = "obstacle"</code></pre>
+<p>The final piece of setup is to tell SpriteKit what <code class="language-swift">contactTestBitMask = 1</code> actually means. Again, this is just an arbitrary number – it means nothing to SpriteKit until we say otherwise.</p>
+<p>A “contact test bitmask” is a fancy way of saying “which collisions do you want to be notified about?” We’ve told both the ground and  that we want to be notified with objects that match type 1, so the next job is to make the player have type 1 so they collide.</p>
+<p>In SpriteKit this is called the <em>category</em> bitmask – add this line of code to the <code class="language-swift">didMove(to:)</code> method, just before calling <code class="language-swift">addChild()</code> for the player:</p>
+<pre><code class="language-swift">player.physicsBody?.categoryBitMask = 1</code></pre>
+<p>With that in place SpriteKit now knows that we want to be informed when the player hits either the ground or any of the . The question is, what should happen when they <em>do</em> collide?</p>
+<p>Well, for now we’re just going to make the player disappear so the game ends. It’s not very exciting, but we’ll add more later.</p>
+<p>This takes four steps, so let’s dive in. First, we need to make our <code class="language-swift">GameScene</code> class conform to the <code class="language-swift">SKPhysicsContactDelegate</code> protocol by amending it to this:</p>
+<pre><code class="language-swift">class GameScene: SKScene, SKPhysicsContactDelegate {</code></pre>
+<p>Second, we need to tell the physics world to notify our game scene when a collision happens. This takes one of code, added to the end of <code class="language-swift">didMove(to:)</code>:</p>
+<pre><code class="language-swift">physicsWorld.contactDelegate = self</code></pre>
+<p>Third, we need to write a <code class="language-swift">playerHit()</code> method that will get called when the player hit another node. Inside the method we’ll remove the player from the game if the other node’s name is “obstacle”, which is the name we used for both the ground and .</p>
+<p>Add this method below <code class="language-swift">createObstacle()</code>:</p>
+<pre><code class="language-swift">func playerHit(_ node: SKNode) {
+    if node.name == "obstacle" {
+        player.removeFromParent()
+    }
+}</code></pre>
+<p>Note that the other node is specified as <code class="language-swift">SKNode</code>, which can be any kind of SpriteKit node rather than just sprites.</p>
+<p>The final step takes a little more thinking. When a contact happens in our game, SpriteKit will look for and call a method called <code class="language-swift">didBegin()</code> in our <code class="language-swift">GameScene</code> class, passing in the two physics bodies that collided.</p>
+<p>This method will start by finding the SpriteKit nodes that belong to each of the physics bodies that collided, called <code class="language-swift">nodeA</code> and <code class="language-swift">nodeB</code>. These are both optional because it’s possible the node might no longer exist, so we’ll make the method exit if either node is nil.</p>
+<p>Next, we’ll make it check if either of the nodes is the player, and, if so, call <code class="language-swift">playerHit()</code> and pass in the <em>other</em> node. That is, if the <code class="language-swift">nodeA</code> is the player we’ll call <code class="language-swift">playerHit(nodeB)</code>, and if <code class="language-swift">nodeB</code> is the player we’ll call <code class="language-swift">playerHit(nodeA)</code>.</p>
+<p>Add this method below <code class="language-swift">playerHit()</code> now:</p>
+<pre><code class="language-swift">func didBegin(_ contact: SKPhysicsContact) {
+    guard let nodeA = contact.bodyA.node else { return }
+    guard let nodeB = contact.bodyB.node else { return }
+
+    if nodeA == player {
+        playerHit(nodeB)
+    } else if nodeB == player {
+        playerHit(nodeA)
+    }
+}</code></pre>
+<p>And with that collision detection is complete – press Cmd+R to build and run your game now, and you should find that touching any of the bird or hitting the ground will make the player disappear. It’s not exciting, but we’ll fix that next!</p><ul><li><a href="3~0-0-0-0-1-0-0-x-x-x-x.html">Go to next chapter</a></li></ul>

@@ -1,0 +1,23 @@
+<h1>Changing shape colors</h1>
+<p>If they player chooses to match only one shape, we’re going to penalize them by completely changing all the shape colors, effectively resetting the game grid.</p>
+<p>Changing our shapes is actually quite easy, because each sprite node has a <code class="language-swift">texture</code> property that contains its image. SpriteKit textures are handled using a class called <code class="language-swift">SKTexture</code>, and you can create them just like creating an <code class="language-swift">SKSpriteNode</code> then assign them to an existing sprite node without having to delete and re-add it.</p>
+<p>Here’s what we’re going to do:</p>
+<ol>
+<li>Create an array of all the shapes image names we can use.</li>
+<li>Loop over all column, and all items in each column.</li>
+<li>Use a random image name for our new item name.</li>
+<li>Create an <code class="language-swift">SKTexture</code> from that image name, and use that for our  item’s texture.</li>
+</ol>
+<p>Replace your current <code class="language-swift">penalizePlayer()</code> method with this:</p>
+<pre><code class="language-swift">func penalizePlayer() {
+    let itemImages = ["shape-circle", "shape-diamond", "shape-heart", "shape-pentagon", "shape-square", "shape-star", "shape-triangle"]
+
+    for col in cols {
+        for item in col {
+            let changeTo = itemImages.randomElement()!
+            item.name = changeTo
+            item.texture = SKTexture(imageNamed: changeTo)
+        }
+    }
+}</code></pre>
+<p>And that’s it – try selecting a single shape now and you should see the rest of the grid change!</p><ul><li><a href="4~0-0-0-0-0-2-0-1-1-0-x-x.html">Go to next chapter</a></li></ul>

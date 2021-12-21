@@ -1,0 +1,5 @@
+<h1>Adjusting their move count</h1>
+<p>If they player chooses to match only one balloon, we’re going to penalize them by subtracting from their remaining move count. How <em>much</em> to subtract is down to you, but it needs to be severe enough to dissuade them from doing it unless it allows an incredible combo.</p>
+<p>In my testing I found 9 to be the magic number, so all we need to do is subtract 9 from <code class="language-swift">movesRemaining</code> inside the <code class="language-swift">penalizePlayer()</code> method. Put this in there now:</p>
+<pre><code class="language-swift">movesRemaining -= 9</code></pre>
+<p>In case you were wondering, 9 is a good choice because we already subtract 1 for every move the player makes. This means if they match only one balloon they will actually lose 10 moves, which works well.</p><ul><li><a href="4~0-1-0-0-0-2-0-1-2-0-x-x.html">Go to next chapter</a></li></ul>

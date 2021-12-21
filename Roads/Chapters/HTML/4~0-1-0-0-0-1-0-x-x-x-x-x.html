@@ -1,0 +1,60 @@
+<h1>Keeping score</h1>
+<p>Now for a part of the game that’s always important: tracking the user’s score. This will involve adding a <code class="language-swift">score</code> integer that tracks the current value, plus some <code class="language-swift">scoreLabel</code> text that shows the score to the user. However, we’re also going to write some logic to calculate their score each time they make a move, which is where the real player skill comes in.</p>
+<p>First, the easy stuff. We’re going to display the player’s score using a new SpriteKit node type called <code class="language-swift">SKLabelNode</code>. You can create these using a font name, then position and size them just like a sprite node – the difference is that they contain text you can change at any time.</p>
+<p>Add this property to <code class="language-swift">GameScene</code> now:</p>
+<pre><code class="language-swift">let scoreLabel = SKLabelNode(fontNamed: "Noteworthy-Bold")</code></pre>
+<p>That creates the label node, but we need to do more work to configure it and add it to our game scene. Specifically, we want to position the text so that it sits at the top-right corner of the screen, using a right alignment so that as the score goes up it doesn’t flow off the screen.</p>
+<p>Add this code to the <code class="language-swift">didMove(to:)</code> method:</p>
+<pre><code class="language-swift">scoreLabel.horizontalAlignmentMode = .right
+scoreLabel.position = CGPoint(x: frame.maxX - 80, y: frame.maxY - 80)
+addChild(scoreLabel)</code></pre>
+<p>That places the label using the <code class="language-swift">maxX</code> and <code class="language-swift">maxY</code> values of our game scene, which is what places it at the top-right corner.</p>
+<p>Don’t run the game just yet because you won’t see any difference – we haven’t given the label any text yet. To do that, we’re going to create a second property called <code class="language-swift">score</code>, which will hold the player’s current score value. We’re going to implement this using a <code class="language-swift">didSet</code> property observer so that whenever the score changes the score label automatically updates.</p>
+<p>Add this property below <code class="language-swift">scoreLabel</code>:</p>
+<pre><code class="language-swift">var score = 0 {
+    didSet {
+        scoreLabel.text = "SCORE: \(score)"
+    }
+}</code></pre>
+<p>Now we can give our score label its initial text just by adding a single line to <code class="language-swift">didMove(to:)</code> – put this directly below the call to <code class="language-swift">addChild(scoreLabel)</code>:</p>
+<pre><code class="language-swift">score = 0</code></pre>
+<p>Even though that’s giving <code class="language-swift">score</code> the same value it starts with, it’s enough to trigger the property observer and <code class="language-swift">scoreLabel</code> will display some text.</p>
+<p>When it comes to adjusting the score, we’re not just going to add 1 for every balloon the player matches – that would be too easy! Instead, we’re going to follow some rules:</p>
+<ol>
+<li>If they tapped only one balloon, we’ll penalize them somehow – you’ll decide later what the penalty will be.</li>
+<li>If they tapped only two balloons, we’ll do nothing; they should try harder.</li>
+<li>If they tapped three or more balloons, then we’ll add increasing numbers of points by using the <code class="language-swift">pow()</code> function.</li>
+</ol>
+<p>The <code class="language-swift">pow()</code> function calculates powers – in our case powers of 2 – and allows us to award players lots more points as they match larger groups. We’ll use <code class="language-swift">pow()</code> to calculate 2 to the power of how many matches they found, so that’s 2 to the power of 3 if they had three matches (8 points), 2 to the power of 4 if they had four matches (16 points), and so on – they’ll double their points for every extra balloon they match in the group.</p>
+<p>To stop things going overboard, we’ll add a cap of 16 to the number of balloon they can score for in a single group.</p>
+<p>First, add this empty method after <code class="language-swift">triggerSpecialItem()</code> so we can penalize the player later on:</p>
+<pre><code class="language-swift">func penalizePlayer() {
+}</code></pre>
+<p>Now add this second method below <code class="language-swift">penalizePlayer()</code>:</p>
+<pre><code class="language-swift">func adjustScore() {
+    let newScore = currentMatches.count
+
+    if newScore == 1 {
+        penalizePlayer()
+    } else if newScore == 2 {
+        // no change
+    } else {
+        // allow up to 16 matches
+        let matchCount = min(newScore, 16)
+
+        // calculate that as a power of 2
+        let scoreToAdd = pow(2, Double(matchCount))
+
+        // add it to their score
+        score += Int(scoreToAdd)
+    }
+}</code></pre>
+<p>Now all that remains is to add a call to <code class="language-swift">adjustScore()</code> at the end of <code class="language-swift">touchesBegan()</code>. Put this there:</p>
+<pre><code class="language-swift">adjustScore()</code></pre>
+<p>Press Cmd+R to give it a try – hopefully you’ll start to see the challenge in the game!</p>
+<p>Now it’s time for your next choice – do you want the game to end because we set a time limit that ran out, or because we set a move limit and the player used them all?</p>
+<h2>Please make your choice:</h2>
+<ul>
+<li><a href="4~0-1-0-0-0-1-0-0-x-x-x-x.html">Set a time limit</a></li>
+<li><a href="4~0-1-0-0-0-1-0-1-x-x-x-x.html">Set a move limit</a></li>
+</ul>

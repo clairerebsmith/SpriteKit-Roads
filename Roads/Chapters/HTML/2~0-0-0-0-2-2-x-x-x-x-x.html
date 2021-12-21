@@ -1,0 +1,24 @@
+<h1>When they guess wrong</h1>
+<p>When the user taps one of the wrong animals in our grid we’ll move them back to level 1 – a harsh penalty, but it will force them to be more thoughtful!</p>
+<p>We just finished writing <code class="language-swift">correctAnswer()</code> for when the user was right, and now we need to do the same for when they are wrong. Start by adding this new method after <code class="language-swift">correctAnswer()</code>:</p>
+<pre><code class="language-swift">func wrongAnswer(node: SKNode) {
+}</code></pre>
+<p>Now look in <code class="language-swift">touchesBegan()</code> for the <code class="language-swift">print("Wrong!")</code> line, and replace it with this:</p>
+<pre><code class="language-swift">wrongAnswer(node: tapped)</code></pre>
+<p>There’s nothing new there – you’re becoming a real SpriteKit pro!</p>
+<p>Next we need to give the user some feedback that they were wrong, and to do that we’ll place a red X over their guess. Please copy wrong@2x.png from the assets for this project into Xcode’s asset catalog, then modify the <code class="language-swift">wrongAnswer()</code> method to this:</p>
+<pre><code class="language-swift">func wrongAnswer(node: SKNode) {
+    let wrong = SKSpriteNode(imageNamed: "wrong")
+    wrong.position = node.position
+    wrong.zPosition = 5
+    addChild(wrong)
+}</code></pre>
+<p>That doesn’t do anything special - it just loads the “wrong” cross, positions it over the wrong answer, then gives it a high Z position so it appears over any other animals that are nearby.</p>
+<p>That X graphic needs to be visible for a short time before we move them back to level 1, so we’re going to use GCD’s <code class="language-swift">asyncAfter()</code> method to wait for one second before moving back to level 1.</p>
+<p>Add this code below the call to <code class="language-swift">addChild()</code>:</p>
+<pre><code class="language-swift">DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+    wrong.removeFromParent()
+    self.level = 1
+    self.createLevel()
+}</code></pre>
+<p>Done!</p><ul><li><a href="2~0-0-0-0-2-2-0-x-x-x-x.html">Go to next chapter</a></li></ul>

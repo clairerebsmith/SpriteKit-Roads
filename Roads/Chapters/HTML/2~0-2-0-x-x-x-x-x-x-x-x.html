@@ -1,0 +1,22 @@
+<h1>Making a grid of balls</h1>
+<p>The next step takes a little more thought, but it uses the same <code class="language-swift">SKSpriteNode</code> objects you just learned about: we’re going to fill the screen with balls, lined up neatly in a 12x8 grid. </p>
+<p>Look in the assets for this project and find 0@2x.png, 1@2x.png, 2@2x.png, and so on, all the way up to 15@2x.png, then copy them into your project’s asset catalog so we can use them. Later on we’ll be showing all of those images, but for now we’re just going to show one so we can see the grid looks correct – 1@2x.png.</p>
+<p>Each of the balls is 64x64 points in size, but it doesn’t look nice having them directly side by side so we’re going to make the grid be 80x80 in side. It also doesn’t look great having them go right to the edge of the screen, so we’re going to add some padding to the edges.</p>
+<p>Our SpriteKit scene is 1024x768, but as I said earlier SpriteKit measures its node positions from their center. So, the left edge of our screen is -512. Rather than go right to the edge, we’re going to start our grid at X:-440 so there’s some space on the left, and vertically we’ll use Y:-320 so there’s some space at the bottom too.</p>
+<p>From those X and Y offsets, we can create our grid using a simple loop: each of the balls will have the X position of <code class="language-swift">X offset + (column number * 80)</code> and the Y position of <code class="language-swift">Y offset + (row number * 80)</code>.</p>
+<p>Add this method below <code class="language-swift">didMove(to:)</code> now:</p>
+<pre><code class="language-swift">func createGrid() {
+    let xOffset = -440
+    let yOffset = -320
+
+    for row in 0 ..&lt; 8 {
+        for col in 0 ..&lt; 12 {
+            let item = SKSpriteNode(imageNamed: "1")
+            item.position = CGPoint(x: xOffset + (col * 80), y: yOffset + (row * 80))
+            addChild(item)
+        }
+    }
+}</code></pre>
+<p>Now we just need to call that method by adding one line to the end of the <code class="language-swift">didMove(to:)</code> method:</p>
+<pre><code class="language-swift">createGrid()</code></pre>
+<p>Try running the app now and you’ll see a grid full of balls. Of course, we don’t want them <em>all</em> to be showing because that would be rather hard, so next we’re going to be looking at difficulty levels…</p><ul><li><a href="2~0-2-0-0-x-x-x-x-x-x-x.html">Go to next chapter</a></li></ul>

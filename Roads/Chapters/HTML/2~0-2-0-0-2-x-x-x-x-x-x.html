@@ -1,0 +1,70 @@
+<h1>When they guess correctly</h1>
+<p>When the user taps the correct item in our grid we’ll show a message on the screen then level up.</p>
+<p>This takes two steps: write code to respond to taps and decide whether they were right or wrong, then of course show a message on the screen to celebrate.</p>
+<p>Our project has an empty <code class="language-swift">touchesBegan()</code> method, which is the perfect place to figure out whether the user touched the right or wrong answer. We’ll be given a set containing their screen touches and it’s our job to figure out what got tapped in our game.</p>
+<p>Sets are like arrays that contain each item only once, and it’s used here because the iPad supports multi-touch. It’s possible the user might touch multiple things at the same time, although we don’t need that here.</p>
+<p>So, we’ll start by fetching the first touch that got passed to us. Add this to <code class="language-swift">touchesBegan()</code>:</p>
+<pre><code class="language-swift">guard let touch = touches.first else { return }</code></pre>
+<p>That assigns the first touch (a <code class="language-swift">UITouch</code> object) to the <code class="language-swift">touch</code> constant. Next we must find where that touch is in our scene, and <code class="language-swift">UITouch</code> has a method for that called <code class="language-swift">location(in:)</code> – we’ll pass it <code class="language-swift">self</code> so that it checks the current scene.</p>
+<p>Add this below the previous line:</p>
+<pre><code class="language-swift">let location = touch.location(in: self)</code></pre>
+<p>Next we need the list of SpriteKit nodes at that location. This is also one line of code because our game scene has a <code class="language-swift">nodes(at:)</code> method to do just that. We’ll pass it our touch’s location, and it will return all the nodes that are there.</p>
+<p>Add this line next:</p>
+<pre><code class="language-swift">let tappedNodes = nodes(at: location)</code></pre>
+<p>We now know which nodes were tapped, but that includes <em>all</em> nodes under the user’s finger. For us that will always include the background, and might also include one of our balls. SpriteKit sorts this array by Z position, so nodes that are towards the top (like our balls) come before nodes that are towards the bottom (like our background).</p>
+<p>This means we can read the first node from <code class="language-swift">tappedNodes</code> and check whether its name is “correct” or “wrong” – SpriteKit will ensure that’s one of our balls rather than the background, unless of course the user tapped an empty area of the grid.</p>
+<p>Add this to <code class="language-swift">touchesBegan()</code>:</p>
+<pre><code class="language-swift">guard let tapped = tappedNodes.first else { return }
+
+if tapped.name == "correct" {
+    print("Correct!")
+} else if tapped.name == "wrong" {
+    print("Wrong!")
+}</code></pre>
+<p>Try the game to make sure everything works – Xcode’s log should print “Wrong!” or “Correct!” depending on what you tap.</p>
+<p>That’s not much fun, so let’s move on and show a message on the screen.</p>
+<p>First, create a method called <code class="language-swift">correctAnswer()</code>, after <code class="language-swift">touchesBegan()</code>:</p>
+<pre><code class="language-swift">func correctAnswer(node: SKNode) {
+}</code></pre>
+<p>I’ve made that accept the node that was tapped so we can position things around it. Next, replace <code class="language-swift">print("Correct!")</code> with a call to that method:</p>
+<pre><code class="language-swift">if tapped.name == "correct" {
+    correctAnswer(node: tapped)</code></pre>
+<p>Now we need to fill in the <code class="language-swift">correctAnswer()</code> method so that when the user guesses correctly we show a message where they touched.</p>
+<p>To make this work we’ll use <code class="language-swift">SKAction</code>, which is SpriteKit’s way of creating animations. It’s trivial for us to make “Correct!” simply <em>appear</em>, but animations will help it look <em>good</em>.</p>
+<p>Our <code class="language-swift">correctAnswer()</code> method already gets passed the tapped node, so we’ll use that to position our correct text. Remember, the user’s finger is still near the screen, so we’ll push the text higher to be visible.</p>
+<p>Put this inside <code class="language-swift">correctAnswer()</code> now:</p>
+<pre><code class="language-swift">let correct = SKSpriteNode(imageNamed: "correct")
+correct.position = node.position
+correct.position.y += 40
+correct.zPosition = 10
+addChild(correct)</code></pre>
+<p>The <code class="language-swift">zPosition</code> of 10 is above everything else, so the text will always be visible.</p>
+<p>To make this more attractive we’ll use <code class="language-swift">SKAction</code> to animate the text: it will start invisible and large, then animate to be visible at its regular scale.</p>
+<p>We’ll begin by setting its initial values, so add this to <code class="language-swift">correctAnswer()</code>:</p>
+<pre><code class="language-swift">correct.alpha = 0
+correct.xScale = 2.0
+correct.yScale = 2.0</code></pre>
+<p>Next we ask <code class="language-swift">SKAction</code> to fade in the node and scale it down to 1x its size (i.e., its natural size), both over 0.25 seconds. These are separate actions, so add these now:</p>
+<pre><code class="language-swift">let fadeIn = SKAction.fadeIn(withDuration: 0.25)
+let scaleIn = SKAction.scale(to: 1, duration: 0.25)</code></pre>
+<p>Those should be run together rather than sequentially, and SpriteKit has an action just for that. Add this next:</p>
+<pre><code class="language-swift">let group = SKAction.group([fadeIn, scaleIn])</code></pre>
+<p>Finally, the actions should begin immediately, so we’ll ask SpriteKit to run them on our <code class="language-swift">correct</code> node:</p>
+<pre><code class="language-swift">correct.run(group)</code></pre>
+<p>That’s all we need to make “Correct!” appear, but we must also increase the game’s level. Our animation lasts 0.25 seconds, so we’ll write code that adjusts <code class="language-swift">level</code> after 1 second and destroys the <code class="language-swift">correct</code> node so it doesn’t display over the next level.</p>
+<p>iOS has a framework called Grand Central Dispatch (GCD) that runs code after a delay – tell it when your code should run by adding seconds to the current time, and it does the rest.</p>
+<p>There’s one catch: if we use properties or methods from our <code class="language-swift">GameScene</code> class we need to prefix them with <code class="language-swift">self.</code> otherwise Xcode complains. There’s nothing else to do, and Xcode literally gives you no choice, so I wouldn’t worry too much.</p>
+<p>Add this to <code class="language-swift">correctAnswer()</code>:</p>
+<pre><code class="language-swift">DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+    correct.removeFromParent()
+    self.level += 1
+    self.createLevel()
+}</code></pre>
+<p>Try the game now and you should see “Correct” animate in, stay for 0.75 seconds, then disappear as the level changes – nice!</p>
+<p>Now, your next choice: what should happen if they get the answer <em>wrong</em>? </p>
+<h2>Please make your choice:</h2>
+<ul>
+<li><a href="2~0-2-0-0-2-0-x-x-x-x-x.html">Make them guess again</a></li>
+<li><a href="2~0-2-0-0-2-1-x-x-x-x-x.html">Move them a level down</a></li>
+<li><a href="2~0-2-0-0-2-2-x-x-x-x-x.html">Move them back to level 1</a></li>
+</ul>

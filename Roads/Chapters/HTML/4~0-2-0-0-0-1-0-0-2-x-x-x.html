@@ -1,0 +1,6 @@
+<h1>Adjusting the clock</h1>
+<p>If they player chooses to match only one alien, we’re going to penalize them by subtracting from their remaining time. How <em>much</em> to subtract is down to you, but it needs to be severe enough to dissuade them from doing it unless it allows an incredible combo.</p>
+<p>In my testing I found 10 seconds to be the magic number, so all we need to do is subtract 10 from <code class="language-swift">gameStartTime</code> inside the <code class="language-swift">penalizePlayer()</code> method. Put this in there now:</p>
+<pre><code class="language-swift">gameStartTime? -= 10</code></pre>
+<p>The syntax is a little strange because <code class="language-swift">gameStartTime</code> is optional – what it means is “if this has a value subtract 10 from it, otherwise do nothing.”</p>
+<p>In case you were wondering, we <em>subtract</em> 10 because we’re effectively saying “make it look like the game started 10 seconds earlier than it did,” which causes 10 seconds more to have passed to reach the current point.</p><ul><li><a href="4~0-2-0-0-0-1-0-0-2-0-x-x.html">Go to next chapter</a></li></ul>

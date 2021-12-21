@@ -1,0 +1,38 @@
+<h1></h1>
+<p>In this game the player needs to tap the screen to move up, because by default they will fall down to their doom.</p>
+<p>We can make the player fall by adding just two lines of code – SpriteKit does nearly all the work for us. This is because we’re going to be using <em>physics simulation</em>: we’ll configure a world out of shapes, give it some gravity, then ask SpriteKit to calculate how those shapes should interact realistically.</p>
+<p>First, we need to tell the physics world for our game scene that we want it to simulate gravity. There’s no gravity right now, so objects with simulated physics hang weightlessly in the air – not much fun for our game.</p>
+<p>Please open GameScene.swift and add this to its <code class="language-swift">didMove(to:)</code> method:</p>
+<pre><code class="language-swift">physicsWorld.gravity = CGVector(dx: 0, dy: -5)</code></pre>
+<p><code class="language-swift">CGVector</code> is a data type that lets us specify the direction and speed of movement, and that line of code equates to 5 meters per second downward – the “dx” and “dy” are short for “delta x” and “delta y”, or how much they differ from zero.</p>
+<p>The second line of code will give the player a physics body, which tells SpriteKit’s physics simulation what shape the player has. Now, you and I both know that the player is a plane, but SpriteKit doesn’t.</p>
+<p>Many games use rectangular physics bodies because they are fast for collision detection – the process of figuring out when two simulated objects collide. In this game we’ll use <em>pixel-perfect collision detection</em>, which asks SpriteKit to look at our player’s image to figure out the shape of its physics body. </p>
+<p>All that is just one line of code thanks to SpriteKit’s <code class="language-swift">SKPhysicsBody</code> class. This lets you describe the physics body of an object using a texture and a size. For this game we’ll pass in the texture assigned to our player, which is the image data loaded from plane@2x.png, as well as the size of that image data. </p>
+<p>There’s a catch here: we’re creating our <code class="language-swift">SKSpriteNode</code> from an image, so we know it always has a texture. However it’s possible to create them from colors, and sprite nodes created that way <em>don’t</em> have a texture. As a result, when creating the physics body for our player we need to force unwrap its <code class="language-swift">texture</code> property – we know it has a value, so this is safe.</p>
+<p>Add this code to the <code class="language-swift">didMove(to:)</code> method:</p>
+<pre><code class="language-swift">player.physicsBody = SKPhysicsBody(texture: player.texture!, size: player.texture!.size())</code></pre>
+<p>That creates a physics body for the player by using its texture and that texture’s size.</p>
+<p>If you run the app now you’ll see the player’s plane
+drops off the screen. Trust me, that’s a good thing – it shows gravity is working as intended!</p>
+<p>The next step is to make the plane move upward when the player taps the screen, or fall down otherwise. Believe it or not, this takes only one line of code – SpriteKit is easy, right?</p>
+<p>Before I show you that line of code I need to explain what’s happening behind the scenes. We’ve asked SpriteKit to simulate gravity at -5 meters per second, but that <em>accumulates</em> – the plane starts falling slowly, then picks up speed over time.</p>
+<p>This total speed is stored in the <code class="language-swift">velocity</code> property of our player’s physics body. It will start at Y:-5 then accelerate up to Y:-500 or more. So, to give the player a push upwards we need to change that <code class="language-swift">velocity</code> property to something positive, and much bigger than just the opposite of gravity because this push won’t accelerate like gravity does.</p>
+<p>I found a Y value of 300 provides the right difficulty for me, so add this to the <code class="language-swift">touchesBegan()</code> method now:</p>
+<pre><code class="language-swift">player.physicsBody?.velocity = CGVector(dx: 0, dy: 300)</code></pre>
+<p>That replaces the plane’s existing velocity with a new one pointing directly upwards. Gravity will start taking hold and dragging it downwards, so the player will need to keep tapping to stay up.</p>
+<p>To make the player’s peril more obvious, I want to make the plane rotate based on its movement so the plane will pull up after the player taps or drop down otherwise.</p>
+<p>This takes three more lines of code, but even then SpriteKit still does most of the work. The three lines of code are:</p>
+<ul>
+<li>Calculating how much to rotate the player. We’ll use the <code class="language-swift">dy</code> component of their velocity multiplied by 0.001. Remember, they could be falling at Y:-500 or more, so multiplying by 0.001 is necessary to make it a small value so they don’t just spin around on the screen</li>
+<li>Convert that into a SpriteKit action that rotates the sprite over 0.1 second so that it animates smoothly.</li>
+<li>Run that action.</li>
+</ul>
+<p>All that code will go into the <code class="language-swift">update()</code> method, which gets called every time SpriteKit is about to update what’s on the screen – about 60 times a second, or more depending on your device.</p>
+<p>Start by adding this to <code class="language-swift">update()</code> to calculate how much to rotate the player based on their vertical speed:</p>
+<pre><code class="language-swift">let value = player.physicsBody!.velocity.dy * 0.001</code></pre>
+<p>Now add this below to create a SpriteKit action that rotates the player to the requested angle over 0.1 seconds:</p>
+<pre><code class="language-swift">let rotate = SKAction.rotate(toAngle: value, duration: 0.1)</code></pre>
+<p><code class="language-swift">SKAction</code> is new, but brilliant in its simplicity: you tell it what should happen, e.g. rotate, scale, or fade out, and tell it how fast that should happen, and it does the rest.</p>
+<p>Finally we need to run that new action on our <code class="language-swift">player</code> sprite so  it starts turning when the screen is tapped. Add this below the others:</p>
+<pre><code class="language-swift">player.run(rotate)</code></pre>
+<p>Run the game now and you’ll see the plane’s rising and falling is much more dramatic – and all it took was three lines of code!</p><ul><li><a href="3~0-0-1-0-x-x-x-x-x-x-x.html">Go to next chapter</a></li></ul>

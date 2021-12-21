@@ -1,0 +1,37 @@
+<h1>Make smart moves to win</h1>
+<p>In this game the player will score points by <em>not</em> touching the screen, which means if they are constantly making small adjustments they won’t get a very high score.</p>
+<p>Writing this code takes three steps:</p>
+<ol>
+<li>Adding a <code class="language-swift">scoreLabel</code> property that displays the player’s score on the screen.</li>
+<li>Adding a <code class="language-swift">score</code> property that tracks the player’s actual score number, e.g. 150.</li>
+<li>Adding to the score as needed.</li>
+</ol>
+<p>Adding a score label is done using a new type of SpriteKit node called <code class="language-swift">SKLabelNode</code>. You give these a font name, color, and size, and it will render any text you want. Just like sprite nodes and emitter nodes, label nodes also have a position on the screen, but you can also make them align their text left, right, or center (the default).</p>
+<p>iOS comes with a huge range of fonts built in (see <a href="http://iosfonts.com/">http://iosfonts.com/</a> for the list), but we’re going to use Avenir Condensed Bold here – it looks pretty good by default.</p>
+<p>We need to store our score label in a property so we can modify it later on, so please start by adding this before the <code class="language-swift">didMove(to:)</code> method:</p>
+<pre><code class="language-swift">let scoreLabel = SKLabelNode(fontNamed: "AvenirNextCondensed-Bold")</code></pre>
+<p>Inside the <code class="language-swift">didMove(to:)</code> method we need to make a few adjustments to that score label. Specifically, we want to give it a Z position of 2 so that it sits above both the player and the mines, but we also want to adjust its Y coordinate so that it’s near the top of the screen.</p>
+<p>Add these three lines to <code class="language-swift">didMove(to:)</code> now:</p>
+<pre><code class="language-swift">scoreLabel.zPosition = 2
+scoreLabel.position.y = 300
+addChild(scoreLabel)</code></pre>
+<p>Don’t run the game just yet – you won’t see the score label, because we haven’t given it any text yet.</p>
+<p>To fix that we’re going to add a second property called <code class="language-swift">score</code>, which will hold the actual numeric value of the player’s score. </p>
+<p>Swift has a neat syntactic feature called property observers, which let us run some code whenever a property’s value changes. In this game, we’re going to add a property observer to the new <code class="language-swift">score</code> property so that it automatically updates the text inside <code class="language-swift">scoreLabel</code>.</p>
+<p>Add this new property below <code class="language-swift">scoreLabel</code>:</p>
+<pre><code class="language-swift">var score = 0 {
+    didSet {
+        scoreLabel.text = "SCORE: \(score)"
+    }
+}</code></pre>
+<p>The <code class="language-swift">\(score)</code> syntax is string interpolation, which is a fancy way of saying “put the value of <code class="language-swift">score</code> into this string.”</p>
+<p>Now that the score label will get updated whenever the <code class="language-swift">score</code> property is set, we can give it some initial text by adding one more line to <code class="language-swift">didMove(to:)</code>:</p>
+<pre><code class="language-swift">score = 0</code></pre>
+<p>Even though <code class="language-swift">score</code> was already set to 0, that still causes the <code class="language-swift">didSet</code> property observer to be run, which in turn updates the score label’s text. So, if you run the game now you should see “SCORE: 0” at the top.</p>
+<p>Now that we have a score number and a score label, it’s time to modify that score based on the player’s movement.</p>
+<p>We already have a property called <code class="language-swift">touchingPlayer</code>, which is set to true whenever the player is being moved. We can use that to calculate when the score should be changed: every time <code class="language-swift">update()</code> is called, we’ll add 1 to <code class="language-swift">score</code> if <code class="language-swift">touchingPlayer</code> is set to false.</p>
+<p>This literally just takes three lines of code, and only then if you count the closing brace as a line of code. Add this to your <code class="language-swift">update()</code> method:</p>
+<pre><code class="language-swift">if touchingPlayer == false {
+    score += 1
+}</code></pre>
+<p>That’s everything we need to keep track of scores, so go ahead and try out the game now!</p><ul><li><a href="1~0-1-0-0-1-2-0-0-0-x-x-x.html">Go to next chapter</a></li></ul>

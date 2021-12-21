@@ -1,0 +1,92 @@
+<h1>Creating new aliens</h1>
+<p>The player can poke holes in our grid by matching groups, but what we <em>want</em> is for those holes to get filled as the aliens drop down, with new aliens created at the top.</p>
+<p>This takes four steps:</p>
+<ol>
+<li>Updating <code class="language-swift">removeMatches()</code> so it deletes items in a specific order.</li>
+<li>Ensuring the user can’t tap quickly and cause problems.</li>
+<li>Updating <code class="language-swift">createItem()</code> so it can handle creating new aliens offscreen.</li>
+<li>Creating a <code class="language-swift">moveDown()</code> method that animates aliens falling then calls <code class="language-swift">createItem()</code> to fill gaps at the top.</li>
+</ol>
+<p>Let’s start with <code class="language-swift">removeMatches()</code>. Here’s its current code:</p>
+<pre><code class="language-swift">func removeMatches() {
+    for item in currentMatches {
+        item.removeFromParent()
+    }
+}</code></pre>
+<p>That removes everything from <code class="language-swift">currentMatches()</code>, but it has two problems. First, it <em>doesn’t</em> remove items from our <code class="language-swift">cols</code> property, so they don’t get fully destroyed. Second, it destroys them in the order they were matched, which causes problems when we start removing them from an array.</p>
+<p>Imagine an array containing the letters A, B, and C. A is at position 0, B at 1, and C at 2. If we say “remove B from position 1 and C from position 2,” then our program would crash. You see, when you remove B from position 1, <em>C would move down to be at position 1</em>, which means when you say “remove C from position 2” it isn’t there any more and the program crashes.</p>
+<p>In this program we’re removing aliens from our column and row arrays, but if we remove them from the bottom of columns then remove aliens higher up we’ll hit exactly the same problem.</p>
+<p>To solve this we’ll sort <code class="language-swift">currentMatches</code> so its items are arranged by row, highest first. Add this to the start of <code class="language-swift">removeMatches()</code>:</p>
+<pre><code class="language-swift">let sortedMatches = currentMatches.sorted {
+    $0.row &gt; $1.row
+}</code></pre>
+<p>Now the items are sorted safely, we can safely remove them from our <code class="language-swift">cols</code> array. Remember, this is an array of arrays: we’ll get a specific column then remove the item at a specific row. Modify the rest of <code class="language-swift">removeMatches()</code> to be this:</p>
+<pre><code class="language-swift">for item in sortedMatches {
+    cols[item.col].remove(at: item.row)
+    item.removeFromParent()
+}</code></pre>
+<p>The next task is simpler: we removed some aliens from our arrays, but we haven’t created new ones yet. This is dangerous: if the user taps quickly we might try removing things we haven’t created yet, and that will <em>definitely</em> crash.</p>
+<p>To fix this we’ll disable touches when the user taps an alien, then re-enable it later. Start by adding this to <code class="language-swift">touchesBegan()</code>, directly before the <code class="language-swift">currentMatches.removeAll()</code> line:</p>
+<pre><code class="language-swift">isUserInteractionEnabled = false</code></pre>
+<p>The third step is upgrading <code class="language-swift">createItem()</code> to handle creating items offscreen. It already accepts a parameter for that purpose, so we’ll replace the <code class="language-swift">item.position = position(for: item)</code> line with logic: if we’re creating the alien offscreen then animate it in, otherwise place it directly.</p>
+<p>Start by replacing it with this:</p>
+<pre><code class="language-swift">if startOffScreen {
+    // animate in
+} else {
+    item.position = position(for: item)
+}</code></pre>
+<p>That <code class="language-swift">// animate in</code> comment needs more thought. It should:</p>
+<ol>
+<li>Calculate the correct location for this alien.</li>
+<li>Assign that to the alien then adjust its Y position to be 600 points higher so it’s offscreen.</li>
+<li>Create an animation that moves the alien to its correct position.</li>
+<li>Run that animation, and when it finishes re-enable user interaction so touches work again.</li>
+</ol>
+<p>SpriteKit animations use a class called <code class="language-swift">SKAction</code>, which animates movement, opacity, scale, and more. Even better, when it finishes you can run any other code you want, which is perfect for re-enabling user interaction.</p>
+<p>Replace <code class="language-swift">// animate in</code> with this – I’ve added numbered comments matching the above:</p>
+<pre><code class="language-swift">// 1: Calculate the position
+let finalPosition = position(for: item)
+
+// move it higher
+item.position = finalPosition
+item.position.y += 600
+
+// create an animation to move it to the final position
+let action = SKAction.move(to: finalPosition, duration: 0.4)
+
+// run the animation then re-enable user interaction when it finishes
+item.run(action) {
+    self.isUserInteractionEnabled = true
+}</code></pre>
+<p>Finally we’ll write the <code class="language-swift">moveDown()</code> method, which will cause aliens to drop down to fill rows that got removed and create new aliens.</p>
+<p>We’ll write this in two parts, starting with code to move aliens that need it. This is done by looping over all columns, then looping over each row in each column, and adjusting each alien’s <code class="language-swift">row</code> property to reflect its new row. Once we know that, we can use our <code class="language-swift">position(for:)</code> method to calculate its screen position and create another <code class="language-swift">SKAction</code> to animate it there.</p>
+<p>Add this method after <code class="language-swift">removeMatches()</code>:</p>
+<pre><code class="language-swift">func moveDown() {
+    // move down any items that need it
+    for (columnIndex, col) in cols.enumerated() {
+        for (rowIndex, item) in col.enumerated() {
+            item.row = rowIndex
+
+            let action = SKAction.move(to: position(for: item), duration: 0.1)
+            item.run(action)
+        }
+
+        // create new items
+    }
+}</code></pre>
+<p>That has a comment at the end where we’ll add aliens to each column until they are back at the number specified in <code class="language-swift">itemsPerColumn</code>. This is as simple as looping until <code class="language-swift">itemsPerColumn</code> is reached, calling <code class="language-swift">createItem()</code> each time, and appending the new alien to its column.</p>
+<p>Replace <code class="language-swift">//create new items</code> with this:</p>
+<pre><code class="language-swift">while cols[columnIndex].count &lt; itemsPerColumn {
+    let item = createItem(row: cols[columnIndex].count, col: columnIndex, startOffScreen: true)
+    cols[columnIndex].append(item)
+}</code></pre>
+<p>Now that we have <code class="language-swift">moveDown()</code> we need to call it – add this to the end of <code class="language-swift">touchesBegan()</code>:</p>
+<pre><code class="language-swift">moveDown()</code></pre>
+<p>And we’re done – try it out!</p>
+<p>Now for your next choice: every so often we’ll give the user a special item. The question is, what should it do?</p>
+<h2>Please make your choice:</h2>
+<ul>
+<li><a href="4~0-2-0-0-0-0-x-x-x-x-x-x.html">Destroy all surrounding aliens regardless of color</a></li>
+<li><a href="4~0-2-0-0-0-1-x-x-x-x-x-x.html">Make one color of alien become another color</a></li>
+<li><a href="4~0-2-0-0-0-2-x-x-x-x-x-x.html">Let the player destroy any 10 items</a></li>
+</ul>

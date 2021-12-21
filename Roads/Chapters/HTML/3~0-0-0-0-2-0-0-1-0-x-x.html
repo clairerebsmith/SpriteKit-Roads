@@ -1,0 +1,27 @@
+<h1>Adding sound effects</h1>
+<p>Sound and music are integral part of every game experience, and this game isn’t going to be any different.</p>
+<p>First, we need a sound that will play if the player’s plane crashes. I’ve provided explosion.wav in the assets for this project, so please drag that into Xcode’s project navigator now.</p>
+<p>With that sound in place, we can make it play using another <code class="language-swift">SKAction</code> called <code class="language-swift">playSoundFileNamed()</code>. You give this the name of the sound to play, and whether the action should play fully before going on to any subsequent actions in its sequence, and run it somewhere.</p>
+<p>So, find the <code class="language-swift">playerHit()</code> method and add this directly above the call to <code class="language-swift">player.removeFromParent()</code>:</p>
+<pre><code class="language-swift">run(SKAction.playSoundFileNamed("explosion.wav", waitForCompletion: false))</code></pre>
+<p>We also need a sound to play whenever the player scores a point, which will use the same <code class="language-swift">SKAction</code>. First, look for score.wav in the assets for this project, then drag it into Xcode’s project navigator alongside explosion.wav.</p>
+<p>Next, add this line of code inside the <code class="language-swift">playerHit()</code> method, just below the <code class="language-swift">node.removeFromParent()</code> line:</p>
+<pre><code class="language-swift">run(SKAction.playSoundFileNamed("score.wav", waitForCompletion: false))</code></pre>
+<p>This game also needs some music, and I’ve provided a selection for you to choose from</p>
+<p>I’ve picked out five possible tracks that might work well for this game: Balloon Game, Pixelland, Salty Ditty, Theme For Harold, and The Hero. The first four of those were created by Kevin MacLeod of <a href="https://incompetech.com/">https://incompetech.com/</a> and released under the Creative Commons: By Attribution 3.0 License (<a href="http://creativecommons.org/licenses/by/3.0/">http://creativecommons.org/licenses/by/3.0/</a>). In short, that means you’re free to use his music in your games as long as you give him credit somewhere. The Hero was by the user “ShwiggityShwag” of <a href="http://opengameart.org">http://opengameart.org</a> – it’s licensed under the public domain, so you can use it however you want, with or without credit.</p>
+<p>Obviously you only need one of those in your game, so please listen to each of them and see which one you think works best. I chose salty-ditty.mp3, so when you see that in the code below please replace it with the music filename you chose.</p>
+<p>Drag your selected music into Xcode’s project navigator, next to explosion.wav. This time we’re not going to use <code class="language-swift">playSoundFileNamed()</code> because SpriteKit has a better solution called <code class="language-swift">SKAudioNode</code>. This has two advantages over <code class="language-swift">playSoundFilenamed()</code>:</p>
+<ol>
+<li>All audio nodes automatically loop, which means our music track will play when the game launches and loop when it reaches the end of the song.</li>
+<li>You can stop audio nodes whenever you want to by removing it from the scene.</li>
+</ol>
+<p>We’ll be using both of those attributes in this game, because having looping music is important in case our player somehow survives a long time, and we’re going to stop the music when they inevitably die.</p>
+<p>First, add this property to the <code class="language-swift">GameScene</code> class:</p>
+<pre><code class="language-swift">let music = SKAudioNode(fileNamed: "salty-ditty.mp3")</code></pre>
+<p>Remember to change “salty-ditty.mp3” for whatever song you chose.</p>
+<p>Now add this line somewhere inside <code class="language-swift">didMove(to:)</code>:</p>
+<pre><code class="language-swift">addChild(music)</code></pre>
+<p>That’s enough to make the music play and loop, so now add this to the <code class="language-swift">playerHit()</code> method, below the <code class="language-swift">player.removeFromParent()</code> line:</p>
+<pre><code class="language-swift">music.removeFromParent()</code></pre>
+<p>As soon as the music is removed from the game scene it stops looping, which makes the player’s death that little bit more dramatic.</p>
+<p>Try running the game now – it’s amazing what a little sound and music can do to bring a game to life!</p><ul><li><a href="3~0-0-0-0-2-0-0-1-0-0-x.html">Go to next chapter</a></li></ul>

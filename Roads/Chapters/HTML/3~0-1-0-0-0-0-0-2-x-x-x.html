@@ -1,0 +1,24 @@
+<h1>Scoring points over time</h1>
+<p>In this game we’re going to score points just by staying alive, but first we need two important things: a <code class="language-swift">score</code> property that tracks the player’s current score number, and a <code class="language-swift">scoreLabel</code> property that shows the score onscreen.</p>
+<p>This can be done with two new properties: one an integer starting at 0, and one an <code class="language-swift">SKLabelNode</code>, which is SpriteKit’s way of writing text to the screen. To make our code easier to follow, we’re going to implement this using a property observer: we’ll tell Swift that whenever the <code class="language-swift">score</code> integer changes it should also update <code class="language-swift">scoreLabel</code>.</p>
+<p>Add these two properties to <code class="language-swift">GameScene</code> now:</p>
+<pre><code class="language-swift">let scoreLabel = SKLabelNode(fontNamed: "Baskerville-Bold")
+
+var score = 0 {
+    didSet {
+        scoreLabel.text = "SCORE: \(score)"
+    }
+}</code></pre>
+<p>That creates the label node, but we still need to position it in our game scene and give it some initial text. Label nodes have white as their default color, but we’re going to change to a faded black color that adopts a small amount of the background tint.</p>
+<p>Add these four lines of code to the <code class="language-swift">didMove(to:)</code> method:</p>
+<pre><code class="language-swift">scoreLabel.fontColor = UIColor.black.withAlphaComponent(0.5)
+scoreLabel.position.y = 320
+addChild(scoreLabel)
+score = 0</code></pre>
+<p>That last line sets <code class="language-swift">score</code> to zero – that’s its default value, but setting it here will cause its <code class="language-swift">didSet</code> observer code to run, giving our label its initial text.</p>
+<p>Here’s where things get more interesting: we need to keep adding to the player’s score for as long as they are alive. This is the easiest of the three options, and in fact only takes three lines of code – one of which is just a closing brace!</p>
+<p>Add this code to your <code class="language-swift">update()</code> method:</p>
+<pre><code class="language-swift">if player.parent != nil {
+    score += 1
+}</code></pre>
+<p>That works perfectly thanks to the way our game has been made: as soon as the player gets destroyed we call its <code class="language-swift">removeFromParent()</code> method, which in turn sets its <code class="language-swift">parent</code> property to nil. So, by checking for <code class="language-swift">parent</code> <em>not</em> being nil, we can add to the player’s score only when they are alive – easy!</p><ul><li><a href="3~0-1-0-0-0-0-0-2-0-x-x.html">Go to next chapter</a></li></ul>

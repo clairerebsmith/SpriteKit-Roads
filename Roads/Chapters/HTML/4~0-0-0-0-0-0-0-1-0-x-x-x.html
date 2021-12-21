@@ -1,0 +1,6 @@
+<h1>Subtracting from their score</h1>
+<p>If they player chooses to match only one shape, we’re going to penalize them by subtracting from their score. How <em>much</em> to subtract is down to you, but it needs to be severe enough to dissuade them from doing it unless it allows an incredible combo.</p>
+<p>In my testing I found 1000 to be the magic number - just enough to hurt players, but still worth doing if it lets them match 10 or more shapes as a result.</p>
+<p>So, put this inside your <code class="language-swift">penalizePlayer()</code> method:</p>
+<pre><code class="language-swift">score -= 1000</code></pre>
+<p>Done!</p><ul><li><a href="4~0-0-0-0-0-0-0-1-0-0-x-x.html">Go to next chapter</a></li></ul>

@@ -1,0 +1,40 @@
+<h1>Ending the game</h1>
+<p>All good things must come to an end, and this game is no different. So, our final task is to create an <code class="language-swift">endGame()</code> method that shows a “Game over!” message and starts a new game after a couple of seconds have passed.</p>
+<p>In my assets for this project I’ve included three “Game Over” graphics for you to choose from – choose one you like, then add it to your asset catalog. For the sake of simplicity, I’m going to assume you chose game-over-1@2x.png, so when you see “game-over-1” in the code below please change it to match whichever image you chose!</p>
+<p>We need to make several code changes to end our game, but only the one of them is hard, so let’s dive right in.</p>
+<p>First, we need a property that stores when the game has ended. Add this now:</p>
+<pre><code class="language-swift">var isGameOver = false</code></pre>
+<p>Second, we need to exit from <code class="language-swift">touchesBegan()</code> if that property is true – i.e., we need to stop the player from touching things if the game is over. Put this line at the start of <code class="language-swift">touchesBegan()</code>:</p>
+<pre><code class="language-swift">guard isGameOver == false else { return }</code></pre>
+<p>Now for the tricky part: we need to write the <code class="language-swift">endGame()</code> method, which will show “Game over!” on the screen and start another game after a few seconds have passed.</p>
+<p>Showing a sprite on the screen is trivial, although this time we’ll be giving it a Z position of 100 so that it’s definitely drawn above everything else in our scene.</p>
+<p>What <em>is</em> new is how we start a new game, because we’re going to use a framework called Grand Central Dispatch (GCD) to run code after a delay. With GCD, you specify a deadline by which your code should run, usually written as the current time plus a certain number of seconds, and GCD will make sure it happens as you want.</p>
+<p>In our case, that code will create a new GameScene using the file GameScene.sks, ask it to stretch to fit all available space, then present it immediately. GameScene.sks comes built into Xcode’s default SpriteKit project with some extra clutter, but in the template project for this book I’ve just cleaned it up for you.</p>
+<p>Add this method now:</p>
+<pre><code class="language-swift">func endGame() {
+    // make sure we haven't done this already
+    guard isGameOver == false else { return }
+    isGameOver = true
+
+    // create and show the game over sprite
+    let gameOver = SKSpriteNode(imageNamed: "game-over-1")
+    gameOver.zPosition = 100
+    addChild(gameOver)
+
+    // wait for four seconds then run some code
+    DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+        // create a new scene from GameScene.sks
+        if let scene = GameScene(fileNamed: "GameScene") {
+            // make it stretch to fill all available space
+            scene.scaleMode = .aspectFill
+
+            // present it immediately
+            self.view?.presentScene(scene)
+        }
+    }
+}</code></pre>
+<p>Last but not least, we need to call the <code class="language-swift">endGame()</code> method when the player runs out of time. Look in the <code class="language-swift">update()</code> method for the line where we set <code class="language-swift">timer.xScale</code>, and put this directly afterwards:</p>
+<pre><code class="language-swift">if remaining &lt;= 0 {
+    endGame()
+}</code></pre>
+<p>That’s our game finally complete – press Cmd+R to try it now, and you should be able to complete a full game!</p><ul><li><a href="4~0-0-0-0-0-2-0-0-2-0-0-0.html">Go to next chapter</a></li></ul>

@@ -1,0 +1,57 @@
+<h1>Collect energy to win</h1>
+<p>For a real challenge, we’re going to have the player collect energy to score points, while also avoiding asteroids – this should be fun!</p>
+<p>Writing this code takes three steps:</p>
+<ol>
+<li>Adding a <code class="language-swift">scoreLabel</code> property that displays the player’s score on the screen.</li>
+<li>Adding a <code class="language-swift">score</code> property that tracks the player’s actual score number, e.g. 150.</li>
+<li>Adding to the score as needed.</li>
+</ol>
+<p>Adding a score label is done using a new type of SpriteKit node called <code class="language-swift">SKLabelNode</code>. You give these a font name, color, and size, and it will render any text you want. Just like sprite nodes and emitter nodes, label nodes also have a position on the screen, but you can also make them align their text left, right, or center (the default).</p>
+<p>iOS comes with a huge range of fonts built in (see <a href="http://iosfonts.com/">http://iosfonts.com/</a> for the list), but we’re going to use Avenir Condensed Bold here – it looks pretty good by default.</p>
+<p>We need to store our score label in a property so we can modify it later on, so please start by adding this before the <code class="language-swift">didMove(to:)</code> method:</p>
+<pre><code class="language-swift">let scoreLabel = SKLabelNode(fontNamed: "AvenirNextCondensed-Bold")</code></pre>
+<p>Inside the <code class="language-swift">didMove(to:)</code> method we need to make a few adjustments to that score label. Specifically, we want to give it a Z position of 2 so that it sits above both the player and the asteroids, but we also want to adjust its Y coordinate so that it’s near the top of the screen.</p>
+<p>Add these three lines to <code class="language-swift">didMove(to:)</code> now:</p>
+<pre><code class="language-swift">scoreLabel.zPosition = 2
+scoreLabel.position.y = 300
+addChild(scoreLabel)</code></pre>
+<p>Don’t run the game just yet – you won’t see the score label, because we haven’t given it any text yet.</p>
+<p>To fix that we’re going to add a second property called <code class="language-swift">score</code>, which will hold the actual numeric value of the player’s score. </p>
+<p>Swift has a neat syntactic feature called property observers, which let us run some code whenever a property’s value changes. In this game, we’re going to add a property observer to the new <code class="language-swift">score</code> property so that it automatically updates the text inside <code class="language-swift">scoreLabel</code>.</p>
+<p>Add this new property below <code class="language-swift">scoreLabel</code>:</p>
+<pre><code class="language-swift">var score = 0 {
+    didSet {
+        scoreLabel.text = "SCORE: \(score)"
+    }
+}</code></pre>
+<p>The <code class="language-swift">\(score)</code> syntax is string interpolation, which is a fancy way of saying “put the value of <code class="language-swift">score</code> into this string.”</p>
+<p>Now that the score label will get updated whenever the <code class="language-swift">score</code> property is set, we can give it some initial text by adding one more line to <code class="language-swift">didMove(to:)</code>:</p>
+<pre><code class="language-swift">score = 0</code></pre>
+<p>Even though <code class="language-swift">score</code> was already set to 0, that still causes the <code class="language-swift">didSet</code> property observer to be run, which in turn updates the score label’s text. So, if you run the game now you should see “SCORE: 0” at the top.</p>
+<p>Now that we have a mechanism to track and display scores, it’s time for the important part: letting the user find and collect energy so they can actually score something.</p>
+<p>Creating energy uses much the same logic as creating asteroids: we’re going to write a <code class="language-swift">createBonus()</code> method that creates one bonus item every time it’s called. We won’t give it a separate timer because we might as well add it as a call at the end of <code class="language-swift">createEnemy()</code> – every time an enemy is created a bonus will also be created.</p>
+<p>To save time, I’d like you to copy and paste the entire <code class="language-swift">createEnemy()</code> method and rename the duplicate to <code class="language-swift">createBonus()</code>. You’ll need to make two changes:</p>
+<ol>
+<li>Change the image name from <code class="language-swift">asteroid</code> to <code class="language-swift">energy.png</code> so that the correct image is used.</li>
+<li>Change the <code class="language-swift">name</code> property from “enemy” to “bonus”.</li>
+</ol>
+<p>We also need to add one more line to the <code class="language-swift">createBonus()</code> method. When the player hits asteroids we’ll destroy their rocket immediately, but when they collect bonus energy we’ll destroy <em>that</em> rather than the player.</p>
+<p>You already met category bitmasks, which let us assign unique numbers to physics bodies – our player is category 1, for example. You’ve also met contact test bitmasks, which let us tell SpriteKit which collision we want to be notified about. Both our asteroids and our energy have a contact test bitmask of 1, matching the player’s category, so we’ll get notified when they collide.</p>
+<p>But there’s a <em>third</em> bitmask, called the collision bitmask, which determines which object categories a physics body should bounce off – what will make it change direction, like a bouncy ball hitting a wall.</p>
+<p>All this matters because when the player collects energy we don’t want any sort of bouncing to happen – we don’t want the player to change direction. Instead, they should pass smoothly over energy while still registering the contact happened.</p>
+<p>To make that happen, please add this extra line to the <code class="language-swift">createBonus()</code> method:</p>
+<pre><code class="language-swift">sprite.physicsBody?.collisionBitMask = 0</code></pre>
+<p>That ensures we’ll be notified when the player touches energy, but they won’t bounce off each other.</p>
+<p>Like I said, we’re going to create one bonus every time we create one enemy, so the player has ample chance to score points. Add this line to the start of the <code class="language-swift">createEnemy()</code> method:</p>
+<pre><code class="language-swift">createBonus()</code></pre>
+<p>Finally, we need to modify the <code class="language-swift">playerHit()</code> method so that if the node that got hit was a bonus node we add to the score and remove it. Modify <code class="language-swift">playerHit()</code> to this:</p>
+<pre><code class="language-swift">func playerHit(_ node: SKNode) {
+    if node.name == "bonus" {
+        score += 1
+        node.removeFromParent()
+        return
+    } 
+
+    player.removeFromParent()
+}</code></pre>
+<p>That took quite a bit of work, but I think you’ll agree the end result is pleasing – run the game now and see how well you can collect your energy while avoiding asteroids!</p><ul><li><a href="1~0-0-0-0-1-0-0-1-0-x-x-x.html">Go to next chapter</a></li></ul>

@@ -1,0 +1,57 @@
+<h1>Fixing the bugs</h1>
+<p>This game has some serious bugs, all of which stop it from being something people can actually use. I expect you’ve noticed a couple of them already:</p>
+<ol>
+<li>The player can move off the screen.</li>
+<li>When the player dies there’s no way to start again.</li>
+<li>Enemies never get removed – they go off screen, but if you look at the little “Nodes” count in the bottom-right corner it just keeps going up, until eventually your game starts running slowly.</li>
+<li>The player continues to score points even after the game finishes.</li>
+</ol>
+<p>None of those are hard to fix, so let’s dive right in.</p>
+<p>First, the player can move off screen, which makes the game rather hard to play!</p>
+<p>The fix for this is called <em>clamping</em>, which is the process of ensuring a number doesn’t go above or below a specific range. There are lots of ways of clamping numbers, but honestly the easiest to learn, remember, and type is just a brute force approach: write four <code class="language-swift">if</code> conditions, one for X being too low, one for X being too high, one for Y being too low, and one for Y being too high.</p>
+<p>We need this clamping to be happening continuously, which means the best place to put it is inside the <code class="language-swift">update()</code> method. Please add this code at the end of that method now:</p>
+<pre><code class="language-swift">if player.position.x &lt; -400 {
+    player.position.x = -400
+} else if player.position.x &gt; 400 {
+    player.position.x = 400
+}
+
+if player.position.y &lt; -300 {
+    player.position.y = -300
+} else if player.position.y &gt; 300 {
+    player.position.y = 300
+}</code></pre>
+<p>The second problem is that once the game ends there’s no way to start playing again. To fix this we’re going to create and show a new instance of our <code class="language-swift">GameScene</code> class two seconds after the player’s motorbike is destroyed, but first you need to learn some new things.</p>
+<ol>
+<li>iOS lets you schedule work after a delay by using the <code class="language-swift">DispatchQueue.main.asyncAfter()</code> method. You tell it what time the code should run after, and it will do the rest.</li>
+<li>That time is specified as an absolute time, so to say “two seconds from now” we need to write <code class="language-swift">.now() + 2</code> – the <code class="language-swift">.now()</code> part is shorthand for the current time.</li>
+<li>When that time is reached we need to make a new game scene out of the file GameScene.sks. This is a simple configuration file that describes an iPad-sized game scene.</li>
+<li>Just like creating emitter nodes, creating scenes from a file will fail if you type the filename wrongly, so this returns an optional – we need to use <code class="language-swift">if let</code> to unwrap it safely.</li>
+<li>Once we have a game scene we need to tell it to use the <code class="language-swift">.aspectFill</code> scale mode so that it scales up to fill iPads of different sizes. This guarantees us a 1024x768 drawing space for our scene.</li>
+<li>Finally, we need to call <code class="language-swift">presentScene()</code> on our scene’s <code class="language-swift">view</code> property to make the new scene display.</li>
+</ol>
+<p>It takes four lines of code in total (six if you include closing braces), but all four are new. To make things easier I’ve added comments to each line – please add this to the <code class="language-swift">playerHit()</code> method, just after the <code class="language-swift">addChild(gameOver)</code> line:</p>
+<pre><code class="language-swift">// wait for two seconds then run some code
+DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+    // create a new scene from GameScene.sks
+    if let scene = GameScene(fileNamed: "GameScene") {
+        // make it stretch to fill all available space
+        scene.scaleMode = .aspectFill
+
+        // present it immediately
+        self.view?.presentScene(scene)
+    }
+}</code></pre>
+<p>The third bug is something you notice only if you survive long enough: because we never destroy barrels there’s a slow accumulation of sprites collecting off the left edge of the screen. They keep on moving forever, even as the game creates more barrels, and eventually the game starts to slow down.</p>
+<p>The fix here is trivial: inside the <code class="language-swift">update()</code> method we need to loop over all the child nodes in our game scene, and call <code class="language-swift">removeFromParent()</code> on any that are further left than -700. Our left screen edge is -512, so by using -700 we’re ensuring all nodes are comfortably off screen before they get removed.</p>
+<p>Add this to the start of the <code class="language-swift">update()</code> method now:</p>
+<pre><code class="language-swift">for node in children {
+    if node.position.x &lt; -700 {
+        node.removeFromParent()
+    }
+}</code></pre>
+<p>The final bug is about the player’s score: it continues to go up even after they are destroyed. The easiest way to fix this is by finding the <code class="language-swift">score += 1</code> line inside <code class="language-swift">update()</code> and wrapping it in a condition that checks whether our <code class="language-swift">player</code> property has a parent, like this:</p>
+<pre><code class="language-swift">if player.parent != nil {
+    score += 1
+}</code></pre>
+<p>That code works because we call <code class="language-swift">removeFromParent()</code> on the player node as soon as their motorbike gets destroyed.</p><ul><li><a href="1~0-2-0-0-1-1-0-2-0-0-0-0.html">Go to next chapter</a></li></ul>

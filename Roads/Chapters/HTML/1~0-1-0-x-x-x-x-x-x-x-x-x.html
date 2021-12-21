@@ -1,0 +1,33 @@
+<h1>Swimming through bubbles</h1>
+<p>To make our background a little more interesting, we’re going to add some particle effects over the top. Particle effects are commonly used in games to add effects like fire, smoke, rain, and snow.</p>
+<p>As the player is sailing through the sea we’re going to make the particles be some bubbles whizzing by. Don’t worry, this is surprisingly easy – SpriteKit does most of the work for us!</p>
+<p>Go to the File menu and choose New &gt; File. Select “iOS” from the list of platforms at the top, then select “SpriteKit Particle File” from the list of file types.</p>
+<p>When you click Next you’ll be asked to choose a particle template, and I’d like you to select “Snow” then click Next. Xcode will ask you to name the file, so call it “Bubbles.sks” and click Create.</p>
+<p><strong>Warning:</strong> iOS has case-sensitive filenames, which means “Bubbles.sks” and “bubbles.sks” are different things because one has a capital letter at the start. Be careful otherwise you’ll hit problems later!</p>
+<p>When you create new particles Xcode will open its particle editor, which lets you design how you want the particles to look in your game. We selected the snow template so you should see snowflakes falling gently inside Xcode.</p>
+<p>On the right of the particle preview is the attributes inspector. If you don’t already see it, press Alt+Cmd+7 now. We need to make a few changes to the snow template so that it looks more like bubbles:</p>
+<ul>
+<li>Our particles should move from right to left, so change Angle Start to 180 and Angle Range to 0.</li>
+<li>We want them to positioned randomly across the right-hand edge of our screen, so change Position Range X to 0 and Position Range Y to 768 – that’s the height of an iPad screen.</li>
+<li>We don’t want our particles to be affected by gravity, so change Acceleration Y to 0.</li>
+<li>Change Lifetime Start to 12 so that all the particles have time to get to the other side of the screen.</li>
+<li>Finally, we want all the particles to appear much smaller, so change Scale to 0.05 and Scale Range to 0.05.</li>
+</ul>
+<p>In case you were wondering, the “range” parameters (angle range and scale range) are there to add some randomness so that all particles look a little different. A scale value of 0.05 with a scale range of 0.05 will create particles sized from 0.00 to 0.10.</p>
+<p>That’s our particles ready to use, so please return to GameScene.swift. Now add this code after the call to <code class="language-swift">addChild()</code> inside the <code class="language-swift">didMove(to:)</code> method:</p>
+<pre><code class="language-swift">if let particles = SKEmitterNode(fileNamed: "Bubbles") {
+    particles.position.x = 512
+    addChild(particles)
+}</code></pre>
+<p>That does three things.</p>
+<p>The first line of code creates a new <code class="language-swift">SKEmitterNode</code> from the particles we just designed. <code class="language-swift">SKEmitterNode</code> is another SpriteKit node type, just like <code class="language-swift">SKSpriteNode</code>, except its job is to show particle effects rather than simple pictures.</p>
+<p>It’s possible creating the particles might fail, for example if you typed the wrong filename by accident. To make this code safe, Swift has us write <code class="language-swift">if let</code> first – it means “try running this code, and if it works then run some other code. In our case, that “other code” is the following two lines.</p>
+<p>The first of those two lines sets the particle emitter’s position so that it’s the right edge of the iPad screen. iPads are 1024 points across, and SpriteKit considers 0 to be the center, so an X position of 512 is the right edge.</p>
+<p>The other line is one you’ve seen already: <code class="language-swift">addChild()</code> causes the particles to be added to the game scene so they get drawn.</p>
+<p>That’s all the code we need for our particles, so press Cmd+R to run your code again and you should now see some bubbles gliding smoothly over our background picture.</p>
+<p>But, wait – notice anything strange? Think about it: if you were sailing through the sea would the bubbles particles really start  appearing only after a few seconds? Probably not. Instead, they really ought to fill the screen as soon as the game starts, and SpriteKit has some special code just for that purpose.</p>
+<p>Find this line of code:</p>
+<pre><code class="language-swift">particles.position.x = 512</code></pre>
+<p>Now add this directly before:</p>
+<pre><code class="language-swift">particles.advanceSimulationTime(10)</code></pre>
+<p>That asks SpriteKit to create 10 seconds of particles as soon as the game starts, so they should fill the screen completely as soon as the game starts. Much better!</p><ul><li><a href="1~0-1-0-0-x-x-x-x-x-x-x-x.html">Go to next chapter</a></li></ul>

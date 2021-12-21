@@ -1,0 +1,24 @@
+<h1>Adding sound effects</h1>
+<p>Now for my favorite part of any game project: adding sound and music. I like this part because you get results fast, and because it’s surprising how audio can really help a game feel more complete.</p>
+<p>First, music: I picked out five tracks for you to choose from depending on how you want your game to feel. All five of them were created by Kevin MacLeod of <a href="https://incompetech.com/">https://incompetech.com/</a> and released under the Creative Commons: By Attribution 3.0 License (<a href="http://creativecommons.org/licenses/by/3.0/">http://creativecommons.org/licenses/by/3.0/</a>). In short, that means you’re free to use his music in your games as long as you give him credit somewhere.</p>
+<p>The tracks are: Lobby Time, Easy Lemon, Cool Vibes, Truth in the Stones, and Night Cave. Try them all in the assets for this project, see which one you like, then drop it into Xcode’s project navigator. I chose Truth in the Stones, so when you see truth-in-the-stones.mp3 in my code please change it for whichever track you chose instead.</p>
+<p>To make the music play we’re going to use <code class="language-swift">SKAudioNode</code>, which is SpriteKit’s awesome little audio player. It’s awesome because it automatically plays as soon as it’s added anywhere in our game scene, and because it automatically loops when it reaches the end – perfect for our music.</p>
+<p>Like with the score node, we don’t want to add an <code class="language-swift">SKAudioNode</code> to the root of our game scene because that will cause problems with our grid of sprite nodes. So, instead we’ll add it to the background – put this code at the end of <code class="language-swift">didMove(to:)</code>:</p>
+<pre><code class="language-swift">let music = SKAudioNode(fileNamed: "truth-in-the-stones")
+background.addChild(music)</code></pre>
+<p>Remember to change “truth-in-the-stones” for whichever track you chose.</p>
+<p>That’s music done already, so now we just need to add sounds when the user guesses rightly or wrongly. In the assets for this project I’ve included four correct sounds (correct-1.wav through correct-4.wav) and four wrong sounds (wrong-1.wav through wrong-4.wav) for you to choose from.</p>
+<p>Pick any one correct and one wrong sound you like, and drag them both into Xcode’s project navigator. We aren’t going to use <code class="language-swift">SKAudioNode</code> to play these sounds, because SpriteKit has an even easier solution: an <code class="language-swift">SKAction</code> that plays one-off sounds.</p>
+<p>We can run these actions directly on our game scene, so go ahead and add this line to the start of the <code class="language-swift">correctAnswer()</code> method:</p>
+<pre><code class="language-swift">run(SKAction.playSoundFileNamed("correct-1", waitForCompletion: false))</code></pre>
+<p>Make sure you change “correct-1” for whichever file you chose.</p>
+<p>Now add this to the top of <code class="language-swift">wrongAnswer()</code>:</p>
+<pre><code class="language-swift">run(SKAction.playSoundFileNamed("wrong-1", waitForCompletion: false))</code></pre>
+<p>Again, change “wrong-1” for whichever sound you chose.</p>
+<p>Try the game now and I hope you’ll agree that sound and music makes a big difference!</p>
+<p>Before this game is done, there’s one last choice to make: how should we end the game?</p>
+<h2>Please make your choice:</h2>
+<ul>
+<li><a href="2~0-0-0-0-1-2-0-0-0-x-x.html">Give them 10 seconds per level</a></li>
+<li><a href="2~0-0-0-0-1-2-0-0-1-x-x.html">Give them three minutes for the whole game</a></li>
+</ul>

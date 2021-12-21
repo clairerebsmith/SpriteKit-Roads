@@ -1,0 +1,21 @@
+<h1>Adding music and sound effects</h1>
+<p>No game is complete without some music and sound effects, and SpriteKit makes this remarkably easy to do.</p>
+<p>I’ve picked out five possible tracks that might work well for this game, all of which were created by Kevin MacLeod of <a href="https://incompetech.com/">https://incompetech.com/</a> and released under the Creative Commons: By Attribution 3.0 License (<a href="http://creativecommons.org/licenses/by/3.0/">http://creativecommons.org/licenses/by/3.0/</a>). In short, that means you’re free to use his music in your games as long as you give him credit somewhere.</p>
+<p>The tracks I chose are called Cyborg Ninja, Exhilarate, Firebrand, Overworld, and Upbeat Forever, and you can find all five in the assets for this project. We only need one, so try listening to them all and see which one you like most – or go to Kevin’s site and download something else if none of my selection interests you!</p>
+<p>To make things easier to follow, I’m going to assume you chose the Cyborg Ninja song. After all, with a name like “Cyborg Ninja” it must be awesome, right? Right.</p>
+<p>Anyway, drag your selected song into Xcode’s project navigator. Don’t try to drag it into your asset catalog because that only store images – this is an MP3 file, so just drop it directly below GameScene.swift in the project navigator.</p>
+<p>We want the music to start playing as soon as the game begins, and carry on playing until we say otherwise. To do all that – loading the music, playing it, and making it repeat – is actually just two lines of code thanks to a new kind of node called <code class="language-swift">SKAudioNode</code>.</p>
+<p>First, add this property:</p>
+<pre><code class="language-swift">let music = SKAudioNode(fileNamed: "cyborg-ninja.mp3")</code></pre>
+<p>Obviously you should replace “cyborg-ninja.mp3” with the name of whatever music track you liked the most.</p>
+<p>Second, we need to add the node to the game scene, so put this somewhere inside the <code class="language-swift">didMove(to:)</code> method:</p>
+<pre><code class="language-swift">addChild(music)</code></pre>
+<p>That’s it – SpriteKit will automatically start playing the audio node as soon as it’s added, and it will even loop it for us when the music reaches the end. Easy, right?</p>
+<p>We also need an explosion sound for when the player dies. I’ve included explosion.wav in the assets for this project, so please add explosion.wav to your project, just like you did with your music file – drag it from Finder into your project navigator.</p>
+<p>We don’t need an <code class="language-swift">SKAudioNode</code> for this job because we don’t want it to keep looping, but instead I want to introduce you to an extremely powerful alternative: <code class="language-swift">SKAction</code>.</p>
+<p>The <code class="language-swift">SKAction</code> class is there to perform a whole variety of tasks, often with animation built in. It can make things bigger or small, fade in or out, change color, change shape, change position, and much more. But it’s also perfect for playing one-off sounds like our explosion.</p>
+<p>So, put these two lines of code into the <code class="language-swift">playerHit()</code> method, just below the call to <code class="language-swift">player.removeFromParent()</code>:</p>
+<pre><code class="language-swift">let sound = SKAction.playSoundFileNamed("explosion.wav", waitForCompletion: false)
+run(sound)</code></pre>
+<p>As you can see, SpriteKit lets you create these sound actions and play them at a later time, but putting the two lines side by side is fine here.</p>
+<p>At this point we have music playing in the background plus an explosion sound for when they die, so give it a try and see what you think!</p><ul><li><a href="1~0-1-0-0-1-2-0-0-0-0-x-x.html">Go to next chapter</a></li></ul>

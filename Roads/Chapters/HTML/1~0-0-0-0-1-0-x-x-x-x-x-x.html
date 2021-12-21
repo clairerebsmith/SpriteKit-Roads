@@ -1,0 +1,39 @@
+<h1>Avoiding asteroids</h1>
+<p>The next step is to make the game create new asteroids at regular intervals. Initially the player won’t actually be able to <em>collide</em> with the asteroids, but that will come soon.</p>
+<p>Performing work at regular intervals is best done with a timer, which is an iOS object that lets us call a method at any frequency we want.</p>
+<p>Start by adding a property for our timer:</p>
+<pre><code class="language-swift">var gameTimer: Timer?</code></pre>
+<p>That uses <code class="language-swift">Timer?</code> rather than <code class="language-swift">Timer</code> because it’s <em>optional</em> – Swift’s way of creating variables that might not always have a value. This doesn’t have a value initially, but we’re going to give it one later.</p>
+<p>First, though, we need a method that creates enemies. Here you need to learn two new things: how to generate random numbers so we can create enemies at random positions on the screen, and how to create physics bodies so we can make our enemies move across the screen.</p>
+<p>Let’s start with the easy stuff – add this method below <code class="language-swift">update()</code>:</p>
+<pre><code class="language-swift">func createEnemy() {
+    // code goes here
+}</code></pre>
+<p>The first thing we need is a random number. Swift comes with a variety of random tools built in, including <code class="language-swift">Int.random(in:)</code>, <code class="language-swift">CGFloat.random(in:)</code>, <code class="language-swift">someArray.randomElement()</code>, and more. In this game we want asteroids to appear in random Y positions, so we’ll ask for numbers between -350 and 350 – approximately the bottom and top of the screen.</p>
+<p>We also need our enemy sprite. I’ve provided asteroid@2x.png in the project assets, so please copy it into your asset catalog now. To put that sprite onto the screen we need to add four lines to our <code class="language-swift">createEnemy()</code> method, of which only one is new because it positions the sprite at a random location.</p>
+<p>All positions in SpriteKit are handled using a data type called <code class="language-swift">CGPoint</code>, which holds X and Y coordinates. We want the X coordinate to be 1200, which is <em>just</em> off the right edge of the screen so that players can’t see it being created, and we’ll give the Y coordinate a random number by using <code class="language-swift">Int.random(in:)</code>.</p>
+<p>Just like the player, we must give this sprite a Z position <em>higher</em> than the particle system so that it gets drawn correctly. However, this time we’re also going to give the asteroids a <em>name</em> so that we can check them later on if needed; this isn’t needed for the player because we have an explicit property.</p>
+<p>Please add this to <code class="language-swift">createEnemy()</code> now:</p>
+<pre><code class="language-swift">let sprite = SKSpriteNode(imageNamed: "asteroid")
+sprite.position = CGPoint(x: 1200, y: Int.random(in: -350...350))
+sprite.name = "enemy"    
+sprite.zPosition = 1
+addChild(sprite)</code></pre>
+<p>Now for the interesting part: we need to make this sprite move using physics – we’re going to ask SpriteKit to simulate how our asteroids would move in real life.</p>
+<p>That sounds complicated, but it only requires three steps: telling the sprite what its physics body looks like, giving it momentum, then telling it not to slow down over time.</p>
+<p>Our asteroids are being drawn using the asteroid@2x.png texture, so we’re going to ask SpriteKit to use that to figure out the physics body. Add this code to <code class="language-swift">createEnemy()</code>:</p>
+<pre><code class="language-swift">sprite.physicsBody = SKPhysicsBody(texture: sprite.texture!, size: sprite.size)</code></pre>
+<p>There are two curious things there. First, <code class="language-swift">sprite.texture!</code> has an exclamation mark because we’re using the texture (the image) from our sprite and it might not <em>have</em> a texture. Yes, I know sprites sound like they should <em>always</em> have textures, but SpriteKit lets you create them out of colors if you want, which is why the texture might be missing. The exclamation mark is Swift’s way of saying “I know you think this might not be there, but trust me: it is.”</p>
+<p>Second, we need to specify a size as well as a texture. This matters because you can make sprites appear at different sizes so SpriteKit needs to know how large it should make the texture when calculating its shape.</p>
+<p>Next we need to make the asteroids move. This is done using the <code class="language-swift">velocity</code> property of its physics body, which is a <code class="language-swift">CGVector</code>. You already used <code class="language-swift">CGPoint</code> for specifying X and Y positions, but <code class="language-swift">CGVector</code> uses DX and DY – how much X and Y difference there is from 0.</p>
+<p>In this game we’ll give the asteroids a vector that moves it quickly to the left. Through trial and error (playing the game until I found it hard enough!) I came up with a DX value of -500. We don’t want them to move vertically, so we’ll use a DY value of 0.</p>
+<p>Add this code to <code class="language-swift">createEnemy()</code> now:</p>
+<pre><code class="language-swift">sprite.physicsBody?.velocity = CGVector(dx: -500, dy: 0)</code></pre>
+<p>Finally, SpriteKit’s calculations are designed to simulate <em>friction</em> – objects rubbing against other objects or the air, causing them to slow over time. Friction doesn’t make much sense here, so we’re going to disable it.</p>
+<p>SpriteKit uses a fancy name for it called <em>linear damping</em>, but the end result is the same – add this final line to <code class="language-swift">createEnemy()</code> now:</p>
+<pre><code class="language-swift">sprite.physicsBody?.linearDamping = 0</code></pre>
+<p>Now that <code class="language-swift">createEnemy()</code> is complete it’s time to create and start our timer. This is as simple as adding one line of code to the end of <code class="language-swift">didMove(to:)</code> to the timer, tell it to run every 0.35 seconds (again, trial and error!), call the <code class="language-swift">createEnemy()</code> method on our game scene, and repeat forever. </p>
+<p>Please add this near the end of <code class="language-swift">didMove(to:)</code> now:</p>
+<pre><code class="language-swift">gameTimer = Timer.scheduledTimer(timeInterval: 0.35, target: self, selector: #selector(createEnemy), userInfo: nil, repeats: true)</code></pre>
+<p>Note: the <code class="language-swift">userInfo</code> parameter lets you attach custom data to the timer, but we don’t need it here.</p>
+<p>Run the game and you should see asteroids moving smoothly across the screen. They won’t hit the player yet, but we’ll fix that next!</p><ul><li><a href="1~0-0-0-0-1-0-0-x-x-x-x-x.html">Go to next chapter</a></li></ul>

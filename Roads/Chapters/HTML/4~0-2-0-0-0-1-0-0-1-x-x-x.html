@@ -1,0 +1,23 @@
+<h1>Changing alien colors</h1>
+<p>If they player chooses to match only one alien, we’re going to penalize them by completely changing all the alien colors, effectively resetting the game grid.</p>
+<p>Making this change is another chance for you to use <code class="language-swift">SKTexture</code>. We used it previously to change one type of alien into another type, but here we’re going to use it to change <em>everything</em>. </p>
+<p>Here’s what we’re going to do:</p>
+<ol>
+<li>Create an array of all the aliens image names we can use.</li>
+<li>Loop over all column, and all items in each column.</li>
+<li>Use a random image name for our new item name.</li>
+<li>Create an <code class="language-swift">SKTexture</code> from that image name, and use that for our  item’s texture.</li>
+</ol>
+<p>Replace your current <code class="language-swift">penalizePlayer()</code> method with this:</p>
+<pre><code class="language-swift">func penalizePlayer() {
+    let itemImages = ["alien-blue", "alien-gray", "alien-green", "alien-pink", "alien-purple", "alien-yellow"]
+
+    for col in cols {
+        for item in col {
+            let changeTo = itemImages.randomElement()!
+            item.name = changeTo
+            item.texture = SKTexture(imageNamed: changeTo)
+        }
+    }
+}</code></pre>
+<p>And that’s it – try selecting a single alien now and you should see the rest of the grid change!</p><ul><li><a href="4~0-2-0-0-0-1-0-0-1-0-x-x.html">Go to next chapter</a></li></ul>

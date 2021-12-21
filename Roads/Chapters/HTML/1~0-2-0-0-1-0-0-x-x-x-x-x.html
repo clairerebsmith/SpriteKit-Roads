@@ -1,0 +1,54 @@
+<h1>Colliding with cars</h1>
+<p>Having cars means our game is starting to look right, but because they don’t collide with the player’s motorbike there isn’t any <em>fun</em> yet.</p>
+<p>In this step of the project we’re going to make the player collide with our cars so that there’s some difficulty to the game. For now we’re just going to make the player disappear, but we’ll make it more exciting soon enough!</p>
+<p>SpriteKit will tell us when two objects collide through a system called contact testing: we give our player’s physics body a unique number that identifies what type of object it is, then tell our cars it should use that type for its contact testing.</p>
+<p>There are quite a few small steps here, so let’s dive right in. First, we need to give our player’s motorbike a physics body, because right now it doesn’t have one. This uses code you’ve seen already, because we’ll make the physics body out of the motorbike texture and size. Add this code to <code class="language-swift">didMove(to:)</code> with the other player code:</p>
+<pre><code class="language-swift">player.physicsBody = SKPhysicsBody(texture: player.texture!, size: player.size)</code></pre>
+<p>This time, though, we need one other line of code: we need to give this physics body a category. This is just a number that doesn’t mean anything to SpriteKit - it’s just a way of uniquely identifying this physics body so we can tell the cars what to collide with.</p>
+<p>Add this directly below the previous line:</p>
+<pre><code class="language-swift">player.physicsBody?.categoryBitMask = 1</code></pre>
+<p>That’s our player ready for collision detection. The next step is to tell our cars to collide with the player’s motorbike. To do that we need to give its <code class="language-swift">contactTestBitmask</code> a value of 1, which is the same number we used for the player’s category.</p>
+<p>Add this line of code to the end of <code class="language-swift">createEnemy()</code>:</p>
+<pre><code class="language-swift">sprite.physicsBody?.contactTestBitMask = 1</code></pre>
+<p>At the same time, we don’t want cars to accidentally collide with other cars, so we’re going to give it a category of 0. Add this line below the previous one:</p>
+<pre><code class="language-swift">sprite.physicsBody?.categoryBitMask = 0</code></pre>
+<p>So, to recap: we’ve told the player’s physics body that its category number is 1, we’ve told the enemy physics bodies that their category is 0, and we’ve also told the enemy physics bodies that they should collide only with category 1 – the player’s motorbike.</p>
+<p>Putting that all together, we’ve told SpriteKit to send out a notification when the player hits an enemy and no other time.</p>
+<p>Now, SpriteKit is all ready to send out a notification when the collision occurs, but it doesn’t know <em>where</em> to send it, and that’s the next step.</p>
+<p>If we want our game scene to be able to handle contact testing (SpriteKit’s name for collision detection), we need to mark the <code class="language-swift">GameScene</code> class as conforming to a protocol. This is a fancy way of saying that we’re making a promise that our <code class="language-swift">GameScene</code> class knows what to do when a collision happens.</p>
+<p>First, find this line near the top of GameScene.swift:</p>
+<pre><code class="language-swift">class GameScene: SKScene {</code></pre>
+<p>That tells Swift we’re creating a new class called <code class="language-swift">GameScene</code>, and we want to base it off an existing class called <code class="language-swift">SKScene</code>. I’d like you to modify the line to this:</p>
+<pre><code class="language-swift">class GameScene: SKScene, SKPhysicsContactDelegate {</code></pre>
+<p>That now makes the promise that our <code class="language-swift">GameScene</code> class is ready to act as a contact delegate – it’s ready to take some action when collisions happen inside a physics simulation.</p>
+<p>With that promise in place, we can tell the simulated physics world to report all contacts to the game scene, ready for us to do something interesting. This takes just one line of code – add this near the end of <code class="language-swift">didMove(to:)</code>:</p>
+<pre><code class="language-swift">physicsWorld.contactDelegate = self</code></pre>
+<p>The final part of this step is to add some logic to determine what should happen when a collision actually happens. For now we’re just going to remove the player from the screen by calling its <code class="language-swift">removeFromParent()</code> method, but before we can do that there’s some more complex code.</p>
+<p>Consider this: if a hammer hits a nail, did the hammer hit the nail or did the nail hit the hammer? Or did the hammer hit the nail <em>and</em> the nail hit the hammer?</p>
+<p>That might sound like a weird brainteaser, but it matters here. When a collision happens SpriteKit will provide us with the two bodies that were part of the collision, body A and body B, but we have no idea which one is the player.</p>
+<p>Worse, if it thinks two collisions happened – the motorbike hit the cars and the cars also hit the motorbike – then if we remove the player after the first collision then the second collision will cause problems if we try to remove the player again.</p>
+<p>Fortunately, the code to resolve this is much easier than the explanation to understand it. As soon as a collision happens we’re going to use <code class="language-swift">guard</code> to find both nodes that collided. If either no longer exists (i.e., if it was already removed) then we’ll exit the method immediately.</p>
+<p>Once we have both nodes that collided we can use a simple condition to figure out which one is the player. We’ll then make a new method called <code class="language-swift">handleCollision()</code> that will remove the player from the game.</p>
+<p>All set? Make some space below the <code class="language-swift">createEnemy()</code> method and add this:</p>
+<pre><code class="language-swift">func didBegin(_ contact: SKPhysicsContact) {
+    guard let nodeA = contact.bodyA.node else { return }
+    guard let nodeB = contact.bodyB.node else { return }
+
+    if nodeA == player {
+        playerHit(nodeB)
+    } else {
+        playerHit(nodeA)
+    }
+}
+
+func playerHit(_ node: SKNode) {
+    player.removeFromParent()
+}</code></pre>
+<p>That won’t do anything exciting, but you can at least now run the game to see the player’s motorbike get destroyed when they collide with something – we’ll add more to this later.</p>
+<p>You might be wondering why there’s a need for a separate <code class="language-swift">playerHit()</code> method when all it contains is a single line of code. Like I said, we’ll be coming back to add more to this later on, at which point you’ll see that having a separate method helps eliminate code duplication!</p>
+<h2>Please make your choice:</h2>
+<ul>
+<li><a href="1~0-2-0-0-1-0-0-0-x-x-x-x.html">Players earn points by moving as little as possible</a></li>
+<li><a href="1~0-2-0-0-1-0-0-1-x-x-x-x.html">Players earn points by collecting coins</a></li>
+<li><a href="1~0-2-0-0-1-0-0-2-x-x-x-x.html">Players earn points by not dying</a></li>
+</ul>

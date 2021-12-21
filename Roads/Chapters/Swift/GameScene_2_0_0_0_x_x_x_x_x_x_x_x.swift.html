@@ -1,0 +1,35 @@
+<pre><code class="language-swift">import SpriteKit
+
+@objcMembers
+class GameScene: SKScene {
+    override func didMove(to view: SKView) {
+        let background = SKSpriteNode(imageNamed: "background-leaves")
+        background.name = "background"
+        background.zPosition = -1
+        addChild(background)
+
+        createGrid()
+    }
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+    }
+
+    override func update(_ currentTime: TimeInterval) {
+    }
+
+    func createGrid() {
+        let xOffset = -440
+        let yOffset = -320
+
+        for row in 0 ..< 8 {
+            for col in 0 ..< 12 {
+                let item = SKSpriteNode(imageNamed: "elephant")
+                item.position = CGPoint(x: xOffset + (col * 80), y: yOffset + (row * 80))
+                addChild(item)
+            }
+        }
+    }
+}</code></pre>

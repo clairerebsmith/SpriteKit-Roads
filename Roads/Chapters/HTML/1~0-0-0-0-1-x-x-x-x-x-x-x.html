@@ -1,0 +1,51 @@
+<h1>Making the player move</h1>
+<p>Letting the player control their rocket using touch is a fast, accurate, and intuitive game mechanism – it really comes naturally on iPads.</p>
+<p>In terms of code, it means doing four things:</p>
+<ol>
+<li>Using <code class="language-swift">touchesBegan()</code> to track when the player starts touching the screen. If they touched the player we’ll start moving them.</li>
+<li>Adding a method called <code class="language-swift">touchesMoved()</code> to track when the player moves their touch around the screen.</li>
+<li>Adding a method called <code class="language-swift">touchesEnded()</code> to track when the user releases their touch.</li>
+<li>Adding a <code class="language-swift">touchingPlayer</code> property that stores whether the player is being moved or not.</li>
+</ol>
+<p>That last part is the most important, and ties all three methods together. In <code class="language-swift">touchesBegan()</code> we’re going to ask SpriteKit for all the nodes that got touched, and check whether it contains the player. If it does, we’ll set <code class="language-swift">touchingPlayer</code> to be true.</p>
+<p>Inside <code class="language-swift">touchesMoved()</code> we’ll update the <code class="language-swift">position</code> property of the player, but only if <code class="language-swift">touchingPlayer</code> is true. And finally, in <code class="language-swift">touchesEnded()</code> we’ll set <code class="language-swift">touchingPlayer</code> back to false.</p>
+<p>Let’s start by adding this property immediately under the <code class="language-swift">let player = SKSpriteNode</code> property:</p>
+<pre><code class="language-swift">var touchingPlayer = false</code></pre>
+<p>Remember, properties are defined <em>outside</em> methods, and modified <em>inside</em> methods – make sure you put this one <em>before</em> the <code class="language-swift">didMove(to:)</code> method.</p>
+<p><strong>Tip:</strong> This property is marked <code class="language-swift">var</code> rather than <code class="language-swift">let</code> because it will change over time. <code class="language-swift">let</code> makes constants, which cannot be changed.</p>
+<p>Now find the <code class="language-swift">touchesBegan()</code> method. This only has a comment right now, but we need to make it do more:</p>
+<ol>
+<li>Pull out the first touch that happened. Remember, iPads support multi-touch, so the player could in theory use multiple fingers.</li>
+<li>Find where that touch took place in our game scene.</li>
+<li>Find the list of nodes that were under their touch location.</li>
+<li>If that list contains the player, set <code class="language-swift">touchingPlayer</code> to true.</li>
+</ol>
+<p>Let’s start by finding the first touch. This uses Swift’s <code class="language-swift">guard</code> keyword, which ensures that if a touch couldn’t be read the method will exit immediately. Put this just after the comment inside <code class="language-swift">touchesBegan()</code>:</p>
+<pre><code class="language-swift">guard let touch = touches.first else { return }</code></pre>
+<p>Now we want to find the location where the touch took place inside our game scene, so add this:</p>
+<pre><code class="language-swift">let location = touch.location(in: self)</code></pre>
+<p>Next we need to find the list of nodes that are at that location. This should include the background at the very least, and may also include some particles and perhaps the player as well. Add this line:</p>
+<pre><code class="language-swift">let tappedNodes = nodes(at: location)</code></pre>
+<p>Now for the important part: if the list of tapped nodes contains our <code class="language-swift">player</code> property, we need to set <code class="language-swift">touchingPlayer</code> to true. Add this code to <code class="language-swift">touchesBegan()</code> now:</p>
+<pre><code class="language-swift">if tappedNodes.contains(player) {
+    touchingPlayer = true
+}</code></pre>
+<p>The next method is called <code class="language-swift">touchesMoved()</code>, and is triggered when the player moves an existing touch around on the screen.</p>
+<p>Start by adding the method name itself – you should use code completion for this, because it’s quite long. Moving after the end of <code class="language-swift">touchesBegan()</code>, type “touch” then look for “touchesMoved” in the list of options. When you highlight it and press return Xcode should fill in the method name for you.</p>
+<p>This method must exit if <code class="language-swift">touchingPlayer</code> is false (i.e., the player touched the screen but somewhere <em>other</em> than their sprite), or if the first touch couldn’t be read.</p>
+<p>Delete the part that says “code” – that’s just Xcode telling you where to put your custom code – and replace it with this:</p>
+<pre><code class="language-swift">guard touchingPlayer else { return }
+guard let touch = touches.first else { return }</code></pre>
+<p>If both of those tests pass – i.e., if the player is being touched and if we read the player’s touch correctly – then we’re going to find the touch’s location in our game scene, and set the player’s position to that. Add these two lines to <code class="language-swift">touchesMoved()</code> now:</p>
+<pre><code class="language-swift">let location = touch.location(in: self)
+player.position = location</code></pre>
+<p>Finally, the easiest method of all: <code class="language-swift">touchesEnded()</code>. This is called when the user lifts their finger from the screen, and we’re going to use it to set <code class="language-swift">touchingPlayer</code> to false. Our template already has an empty implementation of <code class="language-swift">touchesEnded()</code>, so please add this in there:</p>
+<pre><code class="language-swift">touchingPlayer = false</code></pre>
+<p>We’re done! Go ahead and run the program now, and you should find you can touch and drag the player to make them move, but touching elsewhere does nothing.</p>
+<p>It’s time for another choice from you: now that the player can move around the screen, it’s time for us to add some sort of enemy for them to avoid! The question is, what should they avoid?</p>
+<h2>Please make your choice:</h2>
+<ul>
+<li><a href="1~0-0-0-0-1-0-x-x-x-x-x-x.html">Asteroids</a></li>
+<li><a href="1~0-0-0-0-1-1-x-x-x-x-x-x.html">Enemy ships</a></li>
+<li><a href="1~0-0-0-0-1-2-x-x-x-x-x-x.html">Space junk</a></li>
+</ul>

@@ -1,0 +1,48 @@
+<h1>Scoring points by collecting coins</h1>
+<p>In this game we’re going to score points by collecting coins, but first we need two important things: a <code class="language-swift">score</code> property that tracks the player’s current score number, and a <code class="language-swift">scoreLabel</code> property that shows the score onscreen.</p>
+<p>This can be done with two new properties: one an integer starting at 0, and one an <code class="language-swift">SKLabelNode</code>, which is SpriteKit’s way of writing text to the screen. To make our code easier to follow, we’re going to implement this using a property observer: we’ll tell Swift that whenever the <code class="language-swift">score</code> integer changes it should also update <code class="language-swift">scoreLabel</code>.</p>
+<p>Add these two properties to <code class="language-swift">GameScene</code> now:</p>
+<pre><code class="language-swift">let scoreLabel = SKLabelNode(fontNamed: "Baskerville-Bold")
+
+var score = 0 {
+    didSet {
+        scoreLabel.text = "SCORE: \(score)"
+    }
+}</code></pre>
+<p>That creates the label node, but we still need to position it in our game scene and give it some initial text. Label nodes have white as their default color, but we’re going to change to a faded black color that adopts a small amount of the background tint.</p>
+<p>Add these four lines of code to the <code class="language-swift">didMove(to:)</code> method:</p>
+<pre><code class="language-swift">scoreLabel.fontColor = UIColor.black.withAlphaComponent(0.5)
+scoreLabel.position.y = 320
+addChild(scoreLabel)
+score = 0</code></pre>
+<p>That last line sets <code class="language-swift">score</code> to zero – that’s its default value, but setting it here will cause its <code class="language-swift">didSet</code> observer code to run, giving our label its initial text.</p>
+<p>Here’s where things get more interesting: we need to create coins for the player to collect, adding to their score for each one.</p>
+<p>The easiest way to make this happen is to hijack the <code class="language-swift">createObstacle()</code> method. This gets called every 1.5 by our timer, but we’re going to extend that so that <code class="language-swift">createObstacle()</code> also creates a coin for the player to collect. We want these to be evenly spaced between the , so we’ll make <code class="language-swift">createObstacle()</code> wait for 0.75 seconds before it creates the coin.</p>
+<p>As with the , we’ll create the set the <code class="language-swift">contactTestBitMask</code> of our coin to 1 so that it hits the player, disable <code class="language-swift">isDynamic</code> so that it doesn’t get sucked down by gravity, then set its Y position to something random. We’ll also give it the name “score” so we can track when the player touches it, then make it move across the screen using the same <code class="language-swift">SKAction</code> we used for the .</p>
+<p>The <em>new</em> part is how we create the delay to ensure even spacing. I’ve chosen 0.75, which is exactly half the 1.5-second delay between calls to <code class="language-swift">createObstacle()</code>, which should mean each coin appears half-way between .</p>
+<p>iOS has a built-in mechanism for creating delays called Grand Central Dispatch, or GCD for short. Using that we can run code after a 0.75-second delay like this:</p>
+<pre><code class="language-swift">DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
+    // some code here
+}</code></pre>
+<p>The only catch is that when you refer to the current game scene, e.g. calling <code class="language-swift">addChild()</code>, you need to use <code class="language-swift">self.</code> first, e.g. <code class="language-swift">self.addChild()</code>.</p>
+<p>Add this code to the end of the <code class="language-swift">createObstacle()</code> method:</p>
+<pre><code class="language-swift">DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
+    let coin = SKSpriteNode(imageNamed: "coin")
+    coin.physicsBody = SKPhysicsBody(texture: coin.texture!, size: coin.texture!.size())
+    coin.physicsBody?.contactTestBitMask = 1
+    coin.physicsBody?.isDynamic = false
+    coin.position.y = CGFloat(rand.nextInt())
+    coin.position.x = 768
+    coin.name = "score"
+    coin.run(action)
+
+    self.addChild(coin)
+}</code></pre>
+<p>Now that the coins are working, we just need to update the <code class="language-swift">playerHit()</code> method to detect the player collecting them. It already has an <code class="language-swift">if</code> block in there that catches obstacle collisions, so please add an <code class="language-swift">else if</code> there like this:</p>
+<pre><code class="language-swift">if node.name == "obstacle" {
+    // existing code here
+} else if node.name == "score" {
+    node.removeFromParent()
+    score += 1
+}</code></pre>
+<p>Try the game now and you’ll see it’s looking great – you die if you crash into  or the ground, but if you hit the coins you’ll earn a point.</p><ul><li><a href="3~0-0-0-0-1-0-0-1-0-x-x.html">Go to next chapter</a></li></ul>

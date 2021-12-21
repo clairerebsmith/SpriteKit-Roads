@@ -1,0 +1,56 @@
+<h1>Changing shape colors</h1>
+<p>In this game we’re going to randomly give the player a bonus item that makes one shape color change to another. This color changer will appear once for roughly every 25 shapes the player destroys, which should add some variety to the game.</p>
+<p>First we need to modify the <code class="language-swift">createItem()</code> method so that it will only consider creating special items when they are being created offscreen. This allows us to call <code class="language-swift">createItem()</code> without it possibly creating special items, which is ideal for creating the initial items in the grid.</p>
+<p>If <code class="language-swift">createItem()</code> is called with <code class="language-swift">startOffScreen</code> set to true, we’ll generate a random number between 0 and 49 (inclusive), and if that’s equal to 0 then we’ll generate a color changer item for the player to select.</p>
+<p>Find these two lines:</p>
+<pre><code class="language-swift">let itemImages = ["shape-circle", "shape-diamond", "shape-heart", "shape-pentagon", "shape-square", "shape-star", "shape-triangle"]
+let itemImage = itemImages.randomElement()!</code></pre>
+<p>Now replace them with this:</p>
+<pre><code class="language-swift">let itemImage: String
+
+if startOffScreen &amp;&amp; Int.random(in: 0...24) == 0 {
+    itemImage = "multi"
+} else {
+    let itemImages = ["shape-circle", "shape-diamond", "shape-heart", "shape-pentagon", "shape-square", "shape-star", "shape-triangle"]
+    itemImage = itemImages.randomElement()!
+}</code></pre>
+<p>The “multi” image is new, so please find multi@2x.png in my assets for this project and copy it into your asset catalog.</p>
+<p>That <em>creates</em> the color changer power up, but we still need to adjust <code class="language-swift">touchesBegan()</code> to <em>handle</em> it. First, let’s create a method stub we can call – add this directly after the <code class="language-swift">moveDown()</code> method:</p>
+<pre><code class="language-swift">func triggerSpecialItem(_ item: Item) {
+}</code></pre>
+<p>We can call that directly from <code class="language-swift">touchesBegan()</code> by adding a little code directly before the <code class="language-swift">match(item:)</code> call in that method:</p>
+<pre><code class="language-swift">if tappedItem.name == "multi" {
+    triggerSpecialItem(tappedItem)
+}</code></pre>
+<p>Now for the hard part: when the user taps the color changer, we’ll pick one type of shape and change it to a different type.</p>
+<p>To make this work we’re going to create an array of all possible shapes, then shuffle it. So, start by adding this code to the <code class="language-swift">triggerSpecialItem()</code> method:</p>
+<pre><code class="language-swift">var itemImages = ["shape-circle", "shape-diamond", "shape-heart", "shape-pentagon", "shape-square", "shape-star", "shape-triangle"]
+itemImages.shuffle()</code></pre>
+<p>Now that we have a random array of items, we can decide what to change from and what to change <em>to</em>. This is as simple as reading <code class="language-swift">itemImages[0]</code> and <code class="language-swift">itemImages[1]</code>, so add these two lines below the first two:</p>
+<pre><code class="language-swift">let changeFrom = itemImages[0]
+let changeTo = itemImages[1]</code></pre>
+<p>Once we know what image we’re changing to, we need to create a texture out of it. Textures are the image data that sits behind sprite nodes, and we need it here because want to change the picture being shown by each sprite node without having to delete and re-add it.</p>
+<p>SpriteKit textures are handled using a class called <code class="language-swift">SKTexture</code>, and you create them just like creating an <code class="language-swift">SKSpriteNode</code>. Add this line next:</p>
+<pre><code class="language-swift">let changeToTexture = SKTexture(imageNamed: changeTo)</code></pre>
+<p>Now for the important part: we know what we’re changing <em>from</em> and we know what we’re changing <em>to</em>, so we need to loop over all the rows and columns to make the actual change happen.</p>
+<p>The code for this is exactly what you would expect: loop over all columns, loop over all the items inside each column, check whether the item name is equal to <code class="language-swift">changeFrom</code>, and if so change its name to <code class="language-swift">changeTo</code> and its texture to <code class="language-swift">changeToTexture</code>. Sprite nodes have a dedicated <code class="language-swift">texture</code> property we can adjust, so this code couldn’t be much easier!</p>
+<p>Put these final lines into <code class="language-swift">triggerSpecialItem()</code> now:</p>
+<pre><code class="language-swift">for col in cols {
+    for item in col {
+        if item.name == changeFrom {
+            item.name = changeTo
+            item.texture = changeToTexture
+        }
+    }
+}</code></pre>
+<p>That was easy, right? So if you want – you can choose, of course! – we could push this a little further by making the screen flash white when the color change happens to make it look more impressive.</p>
+<p>Don’t worry, this only takes a few lines of code. First, we’ll create a new white sprite node that fills our screen, which is just one line of code because you can create sprite nodes from a color and a size. Once we have that, we’ll set its Z position to 1 so that it sits over all the shapes, then add it to the scene.</p>
+<p>Add this code to the start of <code class="language-swift">triggerSpecialItem()</code>:</p>
+<pre><code class="language-swift">let flash = SKSpriteNode(color: .white, size: frame.size)
+flash.zPosition = 1
+addChild(flash)</code></pre>
+<p>To make that disappear, we’re going to run a new <code class="language-swift">SKAction</code> on it called <code class="language-swift">fadeOut(withDuration:)</code>, then call <code class="language-swift">removeFromParent()</code> when it completes. Add these two below the others:</p>
+<pre><code class="language-swift">flash.run(SKAction.fadeOut(withDuration: 0.2)) {
+    flash.removeFromParent()
+}</code></pre>
+<p>If you give it a try now you’ll see the screen flash makes the whole color change effect more interesting – keep it if you like it, or ditch it if not. It’s your choice!</p><ul><li><a href="4~0-0-0-0-0-1-0-x-x-x-x-x.html">Go to next chapter</a></li></ul>

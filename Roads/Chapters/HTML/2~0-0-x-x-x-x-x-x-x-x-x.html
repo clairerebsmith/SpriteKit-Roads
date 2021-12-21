@@ -1,0 +1,22 @@
+<h1>Starting with the background</h1>
+<p>The first step in this project is really easy: we’re going to draw a background image that takes up the full screen.</p>
+<p>If you look inside GameScene.swift you’ll find some empty methods ready to be filled, including one called <code class="language-swift">didMove(to:)</code>. This gets called when your game scene is presented on the screen, so it’s a good place to do any work required to make it work.</p>
+<p>The background image will be created using a class called <code class="language-swift">SKSpriteNode</code>. SpriteKit game scenes are organized in a tree structure that make it easy and efficient to manage lots of things at the same time. Sprite nodes are SpriteKit nodes that hold image data, like our background image or the animals we’ll be adding soon.</p>
+<p>When working with nodes, the four main things you need to worry about are:</p>
+<ol>
+<li>The node’s parent node. Remember, this is a <em>tree</em>, which means all nodes have a parent node, right the way up to your game scene, which controls everything.</li>
+<li>The node’s position. This is specified as a <code class="language-swift">CGPoint</code> containing X and Y coordinates. This position is relative to the node’s parent, and measured from the node’s center.</li>
+<li>The node’s Z position, which decides whether it is drawn above or below other nodes. Nodes with higher-numbered Z positions appear on top of nodes with lower-numbered Z positions.</li>
+<li>The node’s name, which lets us refer to it uniquely later on.</li>
+</ol>
+<p>For this background image we don’t need anything special. In fact, we don’t even need to give it a position – I’ve made it the full size of our screen, and the default position of X:0 Y:0 will automatically place it in the center so it fills up the full screen.</p>
+<p>First, press Alt+Cmd+1 to activate Xcode’s project navigator in the left of its window. This lists the contents of your project, and you should see Assets.xcassets in there – this is your <em>asset catalog</em>, which is where you can store all the images you want to use in your game. Please select it now, to open it for editing.</p>
+<p>Second, find the project assets that came with this book. In there you should see background-leaves@2x.png, and I’d like you to drag that file from Finder into your Xcode asset catalog – just below where it says “AppIcon”.</p>
+<p>The @2x part of the filename is there because it’s an image designed for retina iPads. iOS will automatically find and load the correct resolution of assets when we request them, so when we want to reference this image in code we’ll just say “background-leaves” and iOS will do the rest.</p>
+<p>Let’s try that now – please add this code to the <code class="language-swift">didMove(to:)</code> method:</p>
+<pre><code class="language-swift">let background = SKSpriteNode(imageNamed: "background-leaves")
+background.name = "background"
+background.zPosition = -1
+addChild(background)</code></pre>
+<p>That loads the background-leaves@2x.png image from our asset catalog, names it “background”, tells it to render at a Z position of -1, then adds it to the game scene. The default Z position is 0, so a Z position of -1 will put the background behind other things.</p>
+<p>Try running the game now to make sure everything works, and all being well you should see the leaves image taking up all the space.</p><ul><li><a href="2~0-0-0-x-x-x-x-x-x-x-x.html">Go to next chapter</a></li></ul>

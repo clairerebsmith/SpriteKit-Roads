@@ -1,0 +1,88 @@
+<h1>Creating levels</h1>
+<p>Right now our grid is full of lights, but in practice we want to start with only a handful visible and add more as the player levels up.</p>
+<p>To make this work we’re going to add a <code class="language-swift">level</code> integer that tracks which level number is currently being played, starting with 1. So, add this property to the <code class="language-swift">GameScene</code> class:</p>
+<pre><code class="language-swift">var level = 1</code></pre>
+<p>Next we’re going to make a <code class="language-swift">createLevel()</code> method that picks out some lights to show in the grid. The amount we show will depend on the value of <code class="language-swift">level</code>: we’ll show at least 4, then show 1 more for every level the player goes up.</p>
+<p>This is done in four steps:</p>
+<ol>
+<li>Create a shuffled array of all the items in our grid. For our purposes, that’s all child nodes that don’t have the name “background”.</li>
+<li>Hide all the existing lights so the grid is clear. This is done by adjusting their <code class="language-swift">alpha</code> property: 0 means “invisible” and 1 means “fully visible”.</li>
+<li>Decide which item in the grid is going to be the correct one – the one the user needs to tap to level up.</li>
+<li>Fill all the lights we want to show with one of our images, giving them the name “wrong” or “correct” so we can check for correctness, and showing them again.</li>
+</ol>
+<p>Let’s start with the easy part: figuring out how many items to show, shuffling the list of grid items, then hiding them all. Add this method now:</p>
+<pre><code class="language-swift">func createLevel() {
+    var itemsToShow = 4 + level
+
+    // find all nodes that belong to our scene that are not called "background"
+    let items = children.filter { $0.name != "background" }
+
+    // shuffle those nodes so they are in a random order
+    let shuffled = items.shuffled() as! [SKSpriteNode]
+
+    // loop over them
+    for item in shuffled {
+        // and hide each one
+        item.alpha = 0
+    }
+
+    // more work to do
+}</code></pre>
+<p>Yes, Xcode will warn you that <code class="language-swift">itemsToShow</code> doesn’t need to be variable, but we’ll be changing it later so please leave it alone!</p>
+<p>Go ahead and add a call to that <code class="language-swift">createLevel()</code> method by placing this after the <code class="language-swift">createGrid()</code> call in <code class="language-swift">didMove(to:)</code>:</p>
+<pre><code class="language-swift">createLevel()</code></pre>
+<p>Now for the interesting part: in this game we’re showing a collection of red lights, and all of them will flash except one – can the player figure out which one didn’t flash?</p>
+<p>For parts 3 and 4 of this method we’re going to mark the first item in our <code class="language-swift">shuffled</code> array as being the correct answer, then count through the remaining items we need to show and mark each of them as wrong. </p>
+<p>That much is easy, but making the lights flash in sequence is only a little harder thanks to the ability of <code class="language-swift">SKAction</code> to create sequences of actions. In this case we’re going to ask SpriteKit to wait for an increasing period of time, then make each light flash. Initially that time will be 2 seconds so that the user has time to orient themselves before the lights flash, but after each flash we’re going to add a further 0.5 seconds so the next light flashes later.</p>
+<p>To make the lights flash we’re going to use a new data type called <code class="language-swift">SKTexture</code>. We’ve already used <code class="language-swift">SKSpriteNode</code>, which is a sprite that shows an image. Well, <code class="language-swift">SKTexture</code> is the image data behind the scenes – the raw texture that gets loaded from disk. If you’ve ever coded for UIKit, <code class="language-swift">SKSpriteNode</code> is to <code class="language-swift">UIImageView</code> what <code class="language-swift">SKTexture</code> is to <code class="language-swift">UIImage</code>.</p>
+<p>This matters because <code class="language-swift">SKAction</code> has a dedicated action that animates through an array of textures at a frame rate we specify. You can animate through as many as you want, but we don’t need much here – we’ll just flick to the red light then back to the green light over 0.2 seconds, creating the flash effect.</p>
+<p>So, to summarize our approach:</p>
+<ol>
+<li>Mark the first item in <code class="language-swift">shuffled</code> as being correct.</li>
+<li>Start with an initial delay of 2.0 seconds.</li>
+<li>Take the second <code class="language-swift">shuffled</code> item, mark it as wrong, and make it flash at the current delay (2.0 seconds).</li>
+<li>Add 0.5 seconds to the delay</li>
+<li>Take the third <code class="language-swift">shuffled</code> item, mark it as wrong, and make it flash at the current delay (2.5 seconds).</li>
+<li>Repeat for the rest of the items we need to show.</li>
+</ol>
+<p>Let’s start filling that in now. Replace <code class="language-swift">// more work to do</code> with this:</p>
+<pre><code class="language-swift">shuffled[0].name = "correct"
+shuffled[0].alpha = 1</code></pre>
+<p>That marks the first item in <code class="language-swift">shuffled</code> as being correct and shows it.</p>
+<p>Next we need to set up some variables so we can loop over the remaining items to show:</p>
+<ol>
+<li>We’re going to create an array of the two textures we want to use in our animation: “green-light” and “red-light”.</li>
+<li>We’ll put that array into an <code class="language-swift">SKAction</code> that animates between the two over 0.2 seconds.</li>
+<li>Finally, we’ll set an initial time delay of 2.0 seconds so the user has time to acclimatize in the game before things start happening.</li>
+</ol>
+<p>Add this code below the previous two lines:</p>
+<pre><code class="language-swift">let lights = [SKTexture(imageNamed: "green-light"), SKTexture(imageNamed: "red-light")]
+let change = SKAction.animate(with: lights, timePerFrame: 0.2)
+var delay = 2.0</code></pre>
+<p>As you can see, loading an <code class="language-swift">SKTexture</code> is identical to loading an <code class="language-swift">SKSpriteNode</code>, and we can put an array of them directory into the <code class="language-swift">animate(with:)</code> action.</p>
+<p>Now all we need to do is show the correct number of lights for this level. We already set <code class="language-swift">itemsToShow</code> to the number of items we need, and we’ve just configured the correct light. So, all that remains is to count from 1 up <code class="language-swift">itemsToShow</code> and configure items from <code class="language-swift">shuffled</code> to be wrong.</p>
+<p>Add this below the previous code:</p>
+<pre><code class="language-swift">for i in 1 ..&lt; itemsToShow {
+    // pull out this item, mark it as wrong, and show it
+    let item = shuffled[i]
+    item.name = "wrong"
+    item.alpha = 1
+
+    // create the correct pause for this light
+    let ourPause = SKAction.wait(forDuration: delay)
+
+    // make a sequence that pauses then animates
+    let sequence = SKAction.sequence([ourPause, change])
+    item.run(sequence)
+
+    // add to the delay so the next light flashes later
+    delay += 0.5
+}</code></pre>
+<p>That’s all the code we need to see our progress so far – press Cmd+R to run the game, and you should now see only a few lights from the grid are visible, and randomly placed around. Progress!</p>
+<p>Now that our game has one correct answer and several wrong ones, it’s time for another choice: what should happen when the user selects the correct answer?</p>
+<h2>Please make your choice:</h2>
+<ul>
+<li><a href="2~0-1-0-0-0-x-x-x-x-x-x.html">Confetti falls down</a></li>
+<li><a href="2~0-1-0-0-1-x-x-x-x-x-x.html">The wrong lights fade away</a></li>
+<li><a href="2~0-1-0-0-2-x-x-x-x-x-x.html">Show a message on the screen</a></li>
+</ul>

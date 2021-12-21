@@ -1,0 +1,25 @@
+<h1>Creating the player</h1>
+<p>The next step is to create the player’s rocket on the screen. I’ve provided another picture for this in the assets that came with this book, and just like with the background our first step is to add the new picture to our project’s asset catalog.</p>
+<p>So, find the file player-rocket@2x.png in the assets directory for this project, then drag it into your asset catalog just like you did for space@2x.jpg.</p>
+<p>Although the player is going to be another <code class="language-swift">SKSpriteNode</code>, like the background, we can’t create it inside the <code class="language-swift">didMove(to:)</code> method. You see, we need to be able to write code to manipulate the player later on in our game, <em>after</em> all the scene has been set up, so we need to create a different kind of variable for it.</p>
+<p>Variables you create inside methods are available only inside those methods; as soon as they finish, the variables are no longer available to us. We want a variable that’s available everywhere in our game scene, so all we need to do is create it <em>outside</em> our methods. Swift calls these <em>properties</em>, but that’s just a special name for a variable created outside of methods.</p>
+<p><strong>Note:</strong> Although you create properties outside of methods, you can’t <em>use</em> them outside of methods. For example, we’re going to create the player node outside of methods, but we can’t set their position there too – that code needs to be <em>inside</em> a method.</p>
+<p>Alright, enough chatter – please add this code directly before the <code class="language-swift">override func didMove</code> line:</p>
+<pre><code class="language-swift">let player = SKSpriteNode(imageNamed: "player-rocket.png")</code></pre>
+<p>That creates the player, but doesn’t position them on the screen or make them display. For that we need to two more lines, but remember: these need to go <em>inside</em> a method. So, please add these two to the <code class="language-swift">didMove(to:)</code> method, below the previous code:</p>
+<pre><code class="language-swift">player.position.x = -400
+addChild(player)</code></pre>
+<p>If you run the code now you should be able to see the player’s rocket, but if you look carefully you might see they are <em>behind</em> the space dust, which doesn’t look right.</p>
+<p>This happens we haven’t altered the Z position of either the player or the particle emitter we created, so they both have the default Z position of 0. As a result, SpriteKit is free to decide which one gets drawn first, and it might change over time. </p>
+<p>To fix this properly we’re going to give the player’s sprite node a position Z position. If you remember, we gave the background image a Z position of -1 so that it gets drawn behind other things. Well, now we’re going to give the player’s rocket a Z position of 1 so that it gets drawn in front of the space dust.</p>
+<p>Find this line of code:</p>
+<pre><code class="language-swift">player.position.x = -400</code></pre>
+<p>And add this directly after:</p>
+<pre><code class="language-swift">player.zPosition = 1</code></pre>
+<p>Much better!</p>
+<p>Of course, just having the player sit there isn’t much fun, so it’s time for you to make a choice: how do you want the player to move? We can either write code to let the player tilt their iPad to move the rocket, or we can let them touch and drag the rocket directly – it’s down to you!</p>
+<h2>Please make your choice:</h2>
+<ul>
+<li><a href="1~0-0-0-0-0-x-x-x-x-x-x-x.html">Move by tilting the device</a></li>
+<li><a href="1~0-0-0-0-1-x-x-x-x-x-x-x.html">Move by touching the screen</a></li>
+</ul>

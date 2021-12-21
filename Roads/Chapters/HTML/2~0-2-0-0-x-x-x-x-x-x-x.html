@@ -1,0 +1,77 @@
+<h1>Creating levels</h1>
+<p>Right now our grid is full of balls, but in practice we want to start with only a handful visible and add more as the player levels up.</p>
+<p>To make this work we’re going to add a <code class="language-swift">level</code> integer that tracks which level number is currently being played, starting with 1. So, add this property to the <code class="language-swift">GameScene</code> class:</p>
+<pre><code class="language-swift">var level = 1</code></pre>
+<p>Next we’re going to make a <code class="language-swift">createLevel()</code> method that picks out some balls to show in the grid. The amount we show will depend on the value of <code class="language-swift">level</code>: we’ll show at least 4, then show 4 more for every level the player goes up.</p>
+<p>This is done in four steps:</p>
+<ol>
+<li>Create a shuffled array of all the items in our grid. For our purposes, that’s all child nodes that don’t have the name “background”.</li>
+<li>Hide all the existing balls so the grid is clear. This is done by adjusting their <code class="language-swift">alpha</code> property: 0 means “invisible” and 1 means “fully visible”.</li>
+<li>Decide which item in the grid is going to be the correct one – the one the user needs to tap to level up.</li>
+<li>Fill all the balls we want to show with one of our images, giving them the name “wrong” or “correct” so we can check for correctness, and showing them again.</li>
+</ol>
+<p>Let’s start with the easy part: figuring out how many items to show, shuffling the list of grid items, then hiding them all. Add this method now:</p>
+<pre><code class="language-swift">func createLevel() {
+    var itemsToShow = 4 + (level * 4)
+
+    // find all nodes that belong to our scene that are not called "background"
+    let items = children.filter { $0.name != "background" }
+
+    // shuffle those nodes so they are in a random order
+    let shuffled = items.shuffled() as! [SKSpriteNode]
+
+    // loop over them
+    for item in shuffled {
+        // and hide each one
+        item.alpha = 0
+    }
+
+    // more work to do
+}</code></pre>
+<p>Yes, Xcode will warn you that <code class="language-swift">itemsToShow</code> doesn’t need to be variable, but we’ll be changing it later so please leave it alone!</p>
+<p>Go ahead and add a call to that <code class="language-swift">createLevel()</code> method by placing this after the <code class="language-swift">createGrid()</code> call in <code class="language-swift">didMove(to:)</code>:</p>
+<pre><code class="language-swift">createLevel()</code></pre>
+<p>Now for the interesting part: in this game we’re going to show a collection of numbered balls, and it’s down to the player to find the one that has the highest number.</p>
+<p>For parts 3 and 4 of this method we’re going to select a number between 5 and 15, fill an array of random number below that, then assign those numbers to random balls in our grid. All balls will have their name set to “wrong” and alpha to 1 so they are showing, but the last item in the <code class="language-swift">shuffled</code> array will have its name set to “correct” because it will show the image associated with the highest number.</p>
+<p>Let’s start writing some code. Replace the <code class="language-swift">// more work to do</code> comment with this:</p>
+<pre><code class="language-swift">// figure out the highest number we're going to show
+let highest = Int.random(in: 5...15)
+var others = [Int]()
+
+// generate lots of numbers lower than that
+for _ in 1 ..&lt; itemsToShow {
+    let num = Int.random(in: 0 ..&lt; highest)
+    others.append(num)
+}</code></pre>
+<p>Once that runs, <code class="language-swift">others</code> will contain an array of numbers between 0 and one lower than our maximum number. The <code class="language-swift">highest</code> value is calculated using a range of 5 through 15, which means we won’t ever have the problem of accidentally picking a very low number.</p>
+<p>Next we need to loop over all the numbers in <code class="language-swift">others</code>, assign them to balls, then mark them with the name “wrong” and show them. We already have the <code class="language-swift">shuffled</code> array, which contains the items in our grid in a randomized order, so each time we pull a number out of the <code class="language-swift">others</code> array we’ll pull out the matching ball in the <code class="language-swift">shuffled</code> array so we can modify it.</p>
+<p>Before I show you the code, I want to introduce you to a data type called <code class="language-swift">SKTexture</code>. We’ve already used <code class="language-swift">SKSpriteNode</code>, which is a sprite that shows an image. Well, <code class="language-swift">SKTexture</code> is the image data behind the scenes – the raw texture that gets loaded from disk. If you’ve ever coded for UIKit, <code class="language-swift">SKSpriteNode</code> is to <code class="language-swift">UIImageView</code> what <code class="language-swift">SKTexture</code> is to <code class="language-swift">UIImage</code>.</p>
+<p>This matters because we already filled our grid with ball sprites, so rather than removing sprites and re-adding them with the correct texture we’re just going to change their texture in place – you can assign directly to their <code class="language-swift">texture</code> property.</p>
+<p>Add this below the previous loop:</p>
+<pre><code class="language-swift">for (index, number) in others.enumerated() {
+    // pull out one of the random balls
+    let item = shuffled[index]
+
+    // give it the correct texture for its new number
+    item.texture = SKTexture(imageNamed: String(number))
+
+    // show it immediately
+    item.alpha = 1
+
+    // but mark it as wrong
+    item.name = "wrong"
+}</code></pre>
+<p>The final thing we need to do is show the <em>correct</em> answer somewhere, which is just a matter of setting the texture of one of the <code class="language-swift">shuffled</code> items to be the texture for <code class="language-swift">highest</code> then naming it “correct”.</p>
+<p>We’re using several of the <code class="language-swift">shuffled</code> items already, so the easiest thing to do is use the <em>last</em> one in the array – that’s guaranteed not to be used.</p>
+<p>So, put this code after the loop you just added:</p>
+<pre><code class="language-swift">shuffled.last?.texture = SKTexture(imageNamed: String(highest))
+shuffled.last?.alpha = 1
+shuffled.last?.name = "correct"</code></pre>
+<p>That’s all the code we need to see our progress so far – press Cmd+R to run the game, and you should now see only a few balls from the grid are visible, and randomly placed around. Progress!</p>
+<p>Now that our game has one correct answer and several wrong ones, it’s time for another choice: what should happen when the user selects the correct answer?</p>
+<h2>Please make your choice:</h2>
+<ul>
+<li><a href="2~0-2-0-0-0-x-x-x-x-x-x.html">Confetti falls down</a></li>
+<li><a href="2~0-2-0-0-1-x-x-x-x-x-x.html">The wrong balls fade away</a></li>
+<li><a href="2~0-2-0-0-2-x-x-x-x-x-x.html">Show a message on the screen</a></li>
+</ul>

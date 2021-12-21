@@ -1,0 +1,29 @@
+<h1>Counting player moves</h1>
+<p>In this game we’re going to pressure the player into making moves carefully by giving them a limited allocation of moves. </p>
+<p>The set up for this is identical to how we displayed the score label, except this time we’ll place the moves label in the <em>top-left</em> corner.</p>
+<p>Start by adding these two properties to the <code class="language-swift">GameScene</code> class:</p>
+<pre><code class="language-swift">let movesLabel = SKLabelNode(fontNamed: "Noteworthy-Bold")
+
+var movesRemaining = 100 {
+    didSet {
+        movesLabel.text = "MOVES: \(max(0, movesRemaining))"
+    }
+}</code></pre>
+<p>We’re using <code class="language-swift">max(0, movesRemaining)</code> so the label never shows “MOVES: -1” by accident.</p>
+<p>Now put this code into <code class="language-swift">didMove(to:)</code>:</p>
+<pre><code class="language-swift">movesLabel.horizontalAlignmentMode = .left
+movesLabel.position = CGPoint(x: frame.minX + 80, y: frame.maxY - 80)
+addChild(movesLabel)
+movesRemaining = 100</code></pre>
+<p>Note: that uses <code class="language-swift">minX + 80</code> to place the moves label in the top-left corner, whereas the score label used <code class="language-swift">maxX - 80</code> to get the top-right corner.</p>
+<p>So far this has just been a repeat of code you already saw. Well, amazingly it now only takes just one more line of code to make our move counter work – we need to subtract from our counter each time the player makes a move.</p>
+<p>Put this in the <code class="language-swift">touchesBegan()</code> method, directly after the <code class="language-swift">currentMatches.removeAll()</code> line:</p>
+<pre><code class="language-swift">movesRemaining -= 1</code></pre>
+<p>Done! Go ahead and press Cmd+R to try the game now.</p>
+<p>Now that we have an incentive for the player to work hard, it’s time for another choice: if they select only one alien, should we subtract from their score, make all the aliens change colors, or take 10 moves off their count?</p>
+<h2>Please make your choice:</h2>
+<ul>
+<li><a href="4~0-2-0-0-0-2-0-1-0-x-x-x.html">Subtract from their score</a></li>
+<li><a href="4~0-2-0-0-0-2-0-1-1-x-x-x.html">Make all the aliens change color</a></li>
+<li><a href="4~0-2-0-0-0-2-0-1-2-x-x-x.html">Take 10 moves off their count</a></li>
+</ul>

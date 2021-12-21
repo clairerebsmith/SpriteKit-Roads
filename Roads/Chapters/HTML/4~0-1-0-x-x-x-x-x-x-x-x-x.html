@@ -1,0 +1,59 @@
+<h1>Making a grid of balloons</h1>
+<p>Now that we have a background image, the next step is to draw a grid of balloons on top.</p>
+<p>We’re going to organize the grid as a series of rows and columns, with each balloon knowing its own row and column. This structure might seem complicated at first, but it’s important: when the player taps a balloon we’ll be able to read its row and column immediately, then use those values to find other balloons that are nearby.</p>
+<p>To make this easier we’re going to create a custom subclass of <code class="language-swift">SKSpriteNode</code> so that we can store <code class="language-swift">row</code> and <code class="language-swift">col</code> properties. Apart from those two we’ll use it just like any other sprite node; this is just for convenience.</p>
+<p>So, go to the File menu in Xcode and choose New &gt; File. From the list of options, choose Cocoa Touch Class, name it “Item”, then make it a subclass of “SKSpriteNode”. Click Next then Create, and Xcode should open it for editing.</p>
+<p>You’ll get an error at first because Xcode doesn’t automatically add an import for SpriteKit into the Item.swift file, so please add this line now:</p>
+<pre><code class="language-swift">import SpriteKit</code></pre>
+<p>Like I said, all this custom subclass will do is add two properties that store the row and column of the <code class="language-swift">Item</code> object, so add these two to the class:</p>
+<pre><code class="language-swift">var row = -1
+var col = -1</code></pre>
+<p>That’s it – we’re done with Item.swift, so please return to GameScene.swift so we can start drawing some balloons.</p>
+<p>First we need to create some properties to help us create and story the grid: an array of arrays of <code class="language-swift">Item</code>, <code class="language-swift">itemSize</code> to store how much space to give each balloon, plus <code class="language-swift">itemsPerColumn</code> and <code class="language-swift">itemsPerRow</code> to store our grid size:</p>
+<pre><code class="language-swift">var cols = [[Item]]()
+let itemSize: CGFloat = 50
+let itemsPerColumn = 12
+let itemsPerRow = 18</code></pre>
+<p><code class="language-swift">col</code> is an array of arrays because it is an array of columns, each of which is an array of individual items for that column.</p>
+<p>Each balloon will have a precise position on the screen, based on its row and column. We’ll add a little X and Y offsets to make them center neatly on the screen, but otherwise we can find the position of an balloon by multiplying its row and column with our <code class="language-swift">itemSize</code> property.</p>
+<p>This is a helpful thing to be able to calculate as needed, so we’re going to put it into a method. Please put this just after the <code class="language-swift">update()</code> method in GameScene.swift:</p>
+<pre><code class="language-swift">func position(for item: Item) -&gt; CGPoint {
+    let xOffset: CGFloat = -430
+    let yOffset: CGFloat = -300
+
+    let x = xOffset + itemSize * CGFloat(item.col)
+    let y = yOffset + itemSize * CGFloat(item.row)
+    return CGPoint(x: x, y: y)
+}</code></pre>
+<p>We’re also going to write a dedicate for creating individual balloons. We’ll be using it now to set up the game, but later on too – we need to create more balloons offscreen to refill the grid when they get removed.</p>
+<p>This method will create a new balloon, set its <code class="language-swift">row</code> and <code class="language-swift">col</code> properties, position it using the <code class="language-swift">position(for:)</code> method, then add it to the scene. For now we’re always going to use “balloon-red” for the image, but importantly we’re going to assign that string to be the name of our new balloon so that we can check for matches later.</p>
+<p>Add this method now:</p>
+<pre><code class="language-swift">func createItem(row: Int, col: Int, startOffScreen: Bool = false) -&gt; Item {
+    let itemImage = "balloon-red"
+    let item = Item(imageNamed: itemImage)
+    item.name = itemImage        
+    item.row = row
+    item.col = col
+    item.position = position(for: item)
+    addChild(item)
+    return item
+}</code></pre>
+<p>The last step for our grid is to call <code class="language-swift">createItem()</code> once for each item in our grid. Remember, our grid is a series of column arrays, and each column array contains lots of items. So, each time we loop over a row we’ll create a new <code class="language-swift">[Item]</code> to hold its data, then loop each each column and call <code class="language-swift">createItem()</code> – put this code at the end of <code class="language-swift">didMove(to:)</code>:</p>
+<pre><code class="language-swift">for x in 0 ..&lt; itemsPerRow {
+    var col = [Item]()
+
+    for y in 0 ..&lt; itemsPerColumn {
+        let item = createItem(row: y, col: x)
+        col.append(item)
+    }
+
+    cols.append(col)
+}</code></pre>
+<p>And we’re done with this step! Yes, it took quite a bit of work to get right, but actually this was one of the most complex parts of the game – good job!</p>
+<p>But, wait… wouldn’t it be nice if all the balloons were different colors, like this game needs? That’s surprisingly easy to do: we can create an array of all the image names we added, then use a method called <code class="language-swift">randomElement()</code>. This picks a random item from an array, which we can force unwrap safely because we know the array won’t be empty.</p>
+<p>With that randomization, we can get ourselves a random balloon every time. First, find this line:</p>
+<pre><code class="language-swift">let itemImage = "balloon-red"</code></pre>
+<p>Now replace it with these two:</p>
+<pre><code class="language-swift">let itemImages = ["balloon-black", "balloon-blue", "balloon-green", "balloon-purple", "balloon-red", "balloon-yellow", "balloon-orange"]
+let itemImage = itemImages.randomElement()!</code></pre>
+<p>Now press Cmd+R to see how the game has changed – much better, I think you’ll agree!</p><ul><li><a href="4~0-1-0-0-x-x-x-x-x-x-x-x.html">Go to next chapter</a></li></ul>

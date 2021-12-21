@@ -1,0 +1,36 @@
+<h1>Running out of time</h1>
+<p>In this game we’re going to pressure the player into thinking quickly by adding a time limit to the game. We <em>could</em> use another label node for this job, but I think it’s more interesting to learn something new so instead we’re going to use <code class="language-swift">SKShapeNode</code> to draw a shrinking rectangle on the screen.</p>
+<p>Shape nodes render any shape you want on the screen, providing color fills, strokes, and even glows if you need them. For our timer bar we’re just going to draw a green rectangle, but it’s endlessly customizable if you have some spare time later.</p>
+<p>First, add this property to the <code class="language-swift">GameScene</code> class:</p>
+<pre><code class="language-swift">let timer = SKShapeNode(rect: CGRect(x: 0, y: 0, width: 500, height: 40))</code></pre>
+<p>That creates a shape node using a 500x40 rectangle. As with our score label, we need to configure the timer and add it to the scene inside <code class="language-swift">didMove(to:)</code>, except this time we’re going to place it in the <em>top-left</em> corner. Like I said, we’re also going to color it green, but at the same time we’ll remove its stroke – the line around the edge – by setting it to the <code class="language-swift">.clear</code> color.</p>
+<p>Add this to <code class="language-swift">didMove(to:)</code>, directly below <code class="language-swift">score = 0</code>:</p>
+<pre><code class="language-swift">timer.fillColor = .green
+timer.strokeColor = .clear
+timer.position = CGPoint(x: frame.minX + 70, y: frame.maxY - 80)
+addChild(timer)</code></pre>
+<p>All that code is enough to <em>display</em> the timer, so now we just need to write some code to update it as play continues. This will be done by creating a <code class="language-swift">gameStartTime</code> property, which will store the time the game started and allow us to calculate how much time has passed.</p>
+<p>This will be empty at first, because we don’t know what time the system clock will initially read, so we’ll make it optional. Add this property now:</p>
+<pre><code class="language-swift">var gameStartTime: TimeInterval?</code></pre>
+<p>We need our timer shape node to always reflect how much time remains in the game, which means we’ll be resizing it constantly. The best place for this is our scene’s <code class="language-swift">update()</code> method, which gets called by SpriteKit every time it’s about to draw a new frame in our game.</p>
+<p>This method gets passed a single parameter, which reflects the current system time. If our <code class="language-swift">gameStartTime</code> property already has a value, then we can subtract the current time from the start time to figure out how much time has elapsed, then subtract <em>that</em> from 100 to figure out how much time remains.</p>
+<p>Once we have the remaining time, we’ll divide it by 100 to get a value from 0 to 1, which is exactly what the <code class="language-swift">xScale</code> property of shape nodes wants. This lets us squeeze the shape node horizontally, where 1 means “full size”, 0.5 means “half width”, and 0 means “no width”.</p>
+<p>Of course, our <code class="language-swift">gameStartTime</code> property might not have a value yet, because this might be the first time <code class="language-swift">update()</code> is being called. When that happens, we’ll just set <code class="language-swift">gameStartTime</code> to be whatever the current time is, so the next time <code class="language-swift">update()</code> gets called everything works as intended.</p>
+<p>Modify your <code class="language-swift">update()</code> method to this:</p>
+<pre><code class="language-swift">override func update(_ currentTime: TimeInterval) {
+    if let gameStartTime = gameStartTime {
+        let elapsed = (currentTime - gameStartTime)
+        let remaining = 100 - elapsed
+        timer.xScale = max(0, CGFloat(remaining) / 100)
+    } else {
+        gameStartTime = currentTime
+    }
+}</code></pre>
+<p>That method gets called automatically, so we’re done – press Cmd+R to try the game now!</p>
+<p>Now that we have an incentive for the player to work hard, it’s time for another choice: if they select only one shape, should we subtract from their score, make all the shapes change colors, or take 10 seconds off their time?</p>
+<h2>Please make your choice:</h2>
+<ul>
+<li><a href="4~0-0-0-0-0-2-0-0-0-x-x-x.html">Subtract from their score</a></li>
+<li><a href="4~0-0-0-0-0-2-0-0-1-x-x-x.html">Make all the shapes change color</a></li>
+<li><a href="4~0-0-0-0-0-2-0-0-2-x-x-x.html">Take 10 seconds off their time</a></li>
+</ul>
